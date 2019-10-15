@@ -1,4 +1,4 @@
-import roboschool, gym
+import gym
 from TD3 import TD3
 from PIL import Image
 
@@ -12,7 +12,7 @@ def test():
     save_gif = False
 
     filename = "TD3_{}_{}".format(env_name, random_seed)
-    filename += '_solved'
+    # filename += '_solved'
     directory = "./preTrained/{}".format(env_name)
 
     env = gym.make(env_name)
