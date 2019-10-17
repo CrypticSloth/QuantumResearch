@@ -87,7 +87,9 @@ google.head()
 
 # In[58]:
 
-def load_data(num_days = 27):
+len(google.Close.values.tolist()[0:30])
+
+def load_data(num_days = 30):
     '''
     load in all stock data from the path and return the close values
     '''
@@ -104,13 +106,16 @@ def load_data(num_days = 27):
     amd_c = amd.Close.values.tolist()[0:num_days]
     fb_c = fb.Close.values.tolist()[0:num_days]
 
-    return [google_c,amd_c,fb_c]
+    return np.array([google_c,amd_c,fb_c]).flatten()
 
-def get_state(data, t, n):
+def get_state(data, t, n, num_days = 30,num_stocks = 3):
     '''
         returns an array of an array of size n with the time step of t
         of how much the close value differed from the day before
     '''
+
+    data = data.reshape(num_stocks,num_days).tolist()
+
     stocks = []
     for s in data:
         d = t - n + 1
@@ -119,15 +124,20 @@ def get_state(data, t, n):
         for i in range(n - 1):
             res.append(block[i + 1] - block[i])
         stocks.append(res)
-    return np.array([stocks])
+    return np.array([np.array([stocks]).flatten()])
 
 
 # In[60]:
 
 
-close = load_data(23)
+num_days = 23
+num_stocks = 3
+close = load_data()
 np.shape(close)
-get_state(close, 0, 10)
+close
+len(close)
+get_state(close, 29, 10)
+
 
 # In[61]:
 
@@ -135,10 +145,11 @@ get_state(close, 0, 10)
 get_state(close, 1, 10)
 
 
+
 # In[62]:
 
-
 get_state(close, 2, 10)
+np.shape(get_state(close, 2, 10))
 
 
 # In[63]:
@@ -203,9 +214,10 @@ class Model:
     def __init__(self, input_size, layer_size, output_size):
         self.weights = [
             np.random.randn(input_size, layer_size),
-            np.random.randn(layer_size, output_size), # decision, output we need to do (Do nothing = 0; Buy = 1; sell = 2)
-            np.random.randn(layer_size, 1), # buy, how many units quantity we need to buy
-            np.random.randn(1, layer_size), #Bias layer for our first feed-forward
+            # np.random.randn(layer_size, output_size), # decision, output we need to do (Do nothing = 0; Buy = 1; sell = 2)
+            # np.random.randn(layer_size, 1), # buy, how many units quantity we need to buy
+            np.random.randn(layer_size,output_size), # This will have the softmax applied to it...
+            np.random.randn(1, layer_size), # Bias layer for our first feed-forward
         ]
 
     # To make this deterministic, out ouput is going to be weights for each stock we have
@@ -214,13 +226,8 @@ class Model:
     def predict(self, inputs):
         feed = np.dot(inputs, self.weights[0]) + self.weights[-1]
         decision = np.dot(feed, self.weights[1])
-        buy = np.dot(feed, self.weights[2])
-
-        # print("feed:     ", np.shape(feed))
-        # print("decision: ", np.shape(decision))
-        # print(decision)
-        # print("buy:      ", np.shape(buy))
-        # print(buy)
+        buy = [0.75]
+        # buy = np.dot(feed, self.weights[2])
         return decision, buy
 
     def get_weights(self):
@@ -230,11 +237,11 @@ class Model:
         self.weights = weights
 
 
-# In[65]:
+# In[66]:
 
-
+num_stocks = 3
 window_size = 30
-model = Model(window_size, 500, 3)
+model = Model(window_size*num_stocks, 500, 3)
 
 
 # In[67]:
@@ -242,11 +249,13 @@ model = Model(window_size, 500, 3)
 
 initial_money = 10000
 starting_money = initial_money
-len_close = len(close) - 1
+len_close = int(len(close)/ num_stocks) - 1
 weight = model
 skip = 1
 
 state = get_state(close, 0, window_size + 1)
+print(np.shape(state))
+print(np.shape(close))
 inventory = []
 quantity = 0
 
@@ -284,7 +293,6 @@ for t in range(0, len_close, skip):
 
     state = next_state
 ((initial_money - starting_money) / starting_money) * 100
-
 
 # In[77]:
 
