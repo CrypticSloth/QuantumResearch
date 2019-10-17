@@ -131,10 +131,9 @@ def get_state(data, t, n, num_days = 30,num_stocks = 3):
 
 
 num_days = 23
-num_stocks = 3
+num_stocks = 3 # This will need to be used to calculate the iterations and input layer sizes along with num_days
 close = load_data()
 np.shape(close)
-close
 len(close)
 get_state(close, 29, 10)
 
@@ -214,8 +213,8 @@ class Model:
     def __init__(self, input_size, layer_size, output_size):
         self.weights = [
             np.random.randn(input_size, layer_size),
-            # np.random.randn(layer_size, output_size), # decision, output we need to do (Do nothing = 0; Buy = 1; sell = 2)
-            # np.random.randn(layer_size, 1), # buy, how many units quantity we need to buy
+            np.random.randn(layer_size, output_size), # decision, output we need to do (Do nothing = 0; Buy = 1; sell = 2)
+            np.random.randn(layer_size, 1), # buy, how many units quantity we need to buy
             np.random.randn(layer_size,output_size), # This will have the softmax applied to it...
             np.random.randn(1, layer_size), # Bias layer for our first feed-forward
         ]
@@ -226,8 +225,8 @@ class Model:
     def predict(self, inputs):
         feed = np.dot(inputs, self.weights[0]) + self.weights[-1]
         decision = np.dot(feed, self.weights[1])
-        buy = [0.75]
-        # buy = np.dot(feed, self.weights[2])
+        # buy = [0.75]
+        buy = np.dot(feed, self.weights[2])
         return decision, buy
 
     def get_weights(self):
@@ -239,8 +238,8 @@ class Model:
 
 # In[66]:
 
-num_stocks = 3
-window_size = 30
+num_stocks = 3 # This will need to be used to calculate num of iterations as well as input layer size with window_size
+window_size = 9
 model = Model(window_size*num_stocks, 500, 3)
 
 
@@ -331,7 +330,8 @@ class Agent:
     def get_reward(self, weights):
         initial_money = self.initial_money
         starting_money = initial_money
-        len_close = len(self.close) - 1
+        # len_close = len(self.close) - 1
+        len_close = int(len(self.close)/ num_stocks) - 1
 
         self.model.weights = weights
         state = get_state(self.close, 0, self.window_size + 1)
@@ -436,7 +436,7 @@ class Agent:
 # In[78]:
 
 
-model = Model(input_size = window_size, layer_size = 500, output_size = 3)
+model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = 3)
 agent = Agent(
     model = model,
     money = 10000,
