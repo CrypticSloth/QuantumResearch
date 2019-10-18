@@ -101,6 +101,8 @@ def get_state(data, t, n):
 
 
 close = google.Close.values.tolist()
+np.shape(close)
+
 get_state(close, 0, 10)
 
 
@@ -113,7 +115,7 @@ get_state(close, 1, 10)
 # In[62]:
 
 
-get_state(close, 2, 10)
+np.shape(get_state(close, 2, 10))
 
 
 # In[63]:
@@ -213,6 +215,7 @@ weight = model
 skip = 1
 
 state = get_state(close, 0, window_size + 1)
+print(np.shape(state))
 inventory = []
 quantity = 0
 
