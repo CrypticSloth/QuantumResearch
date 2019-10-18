@@ -208,13 +208,12 @@ class Deep_Evolution_Strategy:
 
 # In[64]:
 
-
 class Model:
     def __init__(self, input_size, layer_size, output_size):
         self.weights = [
             np.random.randn(input_size, layer_size),
-            np.random.randn(layer_size, output_size), # decision, output we need to do (Do nothing = 0; Buy = 1; sell = 2)
-            np.random.randn(layer_size, 1), # buy, how many units quantity we need to buy
+            # np.random.randn(layer_size, output_size), # decision, output we need to do (Do nothing = 0; Buy = 1; sell = 2)
+            # np.random.randn(layer_size, 1), # buy, how many units quantity we need to buy
             np.random.randn(layer_size,output_size), # This will have the softmax applied to it...
             np.random.randn(1, layer_size), # Bias layer for our first feed-forward
         ]
@@ -225,9 +224,11 @@ class Model:
     def predict(self, inputs):
         feed = np.dot(inputs, self.weights[0]) + self.weights[-1]
         decision = np.dot(feed, self.weights[1])
+        # portfolio = softmax(decision)
         # buy = [0.75]
-        buy = np.dot(feed, self.weights[2])
-        return decision, buy
+        # buy = np.dot(feed, self.weights[2])
+        # return decision, buy
+        return decision
 
     def get_weights(self):
         return self.weights
@@ -235,20 +236,62 @@ class Model:
     def set_weights(self, weights):
         self.weights = weights
 
-
 # In[66]:
 
+def softmax(x):
+    """Compute softmax values for each sets of scores in x."""
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum(axis=1)
+
+def act(model, sequence):
+    decision = model.predict(np.array(sequence))
+    return softmax(decision)
+
+# Testing one iteration of the new reward function
 num_stocks = 3 # This will need to be used to calculate num of iterations as well as input layer size with window_size
 window_size = 9
 model = Model(window_size*num_stocks, 500, 3)
 
+cur_state = get_state(close, 0, window_size + 1)
+weight = model
+initial_money = 10000
+starting_money = initial_money
+
+# cur_state = get_state(close, 0, window_size + 1).reshape(num_stocks,window_size)
+close_s = close.reshape(num_stocks,int(len(close)/num_stocks))
+skip = 1
+
+for t in range(0, len(close_s[0]) - 1, skip):
+
+    portfolio = act(weight, cur_state)
+    next_state = get_state(close, t + 1, window_size + 1).reshape(num_stocks,window_size)
+
+    investment_1 = initial_money * portfolio # Calculate initial investment according to the predicted portfolio amounts
+
+    perc_change = []
+    for i in range(len(close_s)):
+        # Calculate the percentage change for the stocks on the next day
+        change = ((close_s[i][t] + next_state[i][-1]) / close_s[i][0])
+        perc_change.append(change)
+
+    investment_2 = perc_change * investment_1 # Apply those percentage changes to our total stocks to update our investment
+
+    initial_money = np.sum(investment_2)
+    cur_state = next_state.flatten()
+
+    # print("Money change         : ", np.sum(investment_2) - np.sum(investment_1))
+    # print("Initial Money        : ", initial_money)
+    print("Portfolio percentage : ", portfolio)
+    # print("Portfolio perc change: ", perc_change)
+
+((initial_money - starting_money) / starting_money) * 100
 
 # In[67]:
 
 
 initial_money = 10000
 starting_money = initial_money
-len_close = int(len(close)/ num_stocks) - 1
+len_close = int(len(close) / num_stocks) - 1
 weight = model
 skip = 1
 
@@ -261,15 +304,10 @@ quantity = 0
 max_buy = 5
 max_sell = 5
 
-
-def act(model, sequence):
-    decision, buy = model.predict(np.array(sequence))
-    return np.argmax(decision[0]), int(buy[0])
-
-
+# Change this reward function to make it deterministic
 for t in range(0, len_close, skip):
-    action, buy = act(weight, state)
-    next_state = get_state(close, t + 1, window_size + 1)
+    action, buy = act(weight, state) # bought some stock in the portfolio
+    next_state = get_state(close, t + 1, window_size + 1) # compare the stocks we have to the next state
     if action == 1 and initial_money >= close[t]:
         if buy < 0:
             buy = 1
@@ -292,6 +330,10 @@ for t in range(0, len_close, skip):
 
     state = next_state
 ((initial_money - starting_money) / starting_money) * 100
+
+for t in range(0, len_close, skip):
+    portfolio = act(weight, state)
+    next_state = get_state(close, t+1, window_size + 1)
 
 # In[77]:
 
