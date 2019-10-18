@@ -282,59 +282,59 @@ for t in range(0, len(close_s[0]) - 1, skip):
 
     # print("Money change         : ", np.sum(investment_2) - np.sum(investment_1))
     # print("Initial Money        : ", initial_money)
-    print("Portfolio percentage : ", portfolio)
+    # print("Portfolio percentage : ", portfolio)
     # print("Portfolio perc change: ", perc_change)
 
 ((initial_money - starting_money) / starting_money) * 100
 
 # In[67]:
 
-
-initial_money = 10000
-starting_money = initial_money
-len_close = int(len(close) / num_stocks) - 1
-weight = model
-skip = 1
-
-state = get_state(close, 0, window_size + 1)
-print(np.shape(state))
-print(np.shape(close))
-inventory = []
-quantity = 0
-
-max_buy = 5
-max_sell = 5
-
-# Change this reward function to make it deterministic
-for t in range(0, len_close, skip):
-    action, buy = act(weight, state) # bought some stock in the portfolio
-    next_state = get_state(close, t + 1, window_size + 1) # compare the stocks we have to the next state
-    if action == 1 and initial_money >= close[t]:
-        if buy < 0:
-            buy = 1
-        if buy > max_buy:
-            buy_units = max_buy
-        else:
-            buy_units = buy
-        total_buy = buy_units * close[t]
-        initial_money -= total_buy
-        inventory.append(total_buy)
-        quantity += buy_units
-    elif action == 2 and len(inventory) > 0:
-        if quantity > max_sell:
-            sell_units = max_sell
-        else:
-            sell_units = quantity
-        quantity -= sell_units
-        total_sell = sell_units * close[t]
-        initial_money += total_sell
-
-    state = next_state
-((initial_money - starting_money) / starting_money) * 100
-
-for t in range(0, len_close, skip):
-    portfolio = act(weight, state)
-    next_state = get_state(close, t+1, window_size + 1)
+#
+# initial_money = 10000
+# starting_money = initial_money
+# len_close = int(len(close) / num_stocks) - 1
+# weight = model
+# skip = 1
+#
+# state = get_state(close, 0, window_size + 1)
+# print(np.shape(state))
+# print(np.shape(close))
+# inventory = []
+# quantity = 0
+#
+# max_buy = 5
+# max_sell = 5
+#
+# # Change this reward function to make it deterministic
+# for t in range(0, len_close, skip):
+#     action, buy = act(weight, state) # bought some stock in the portfolio
+#     next_state = get_state(close, t + 1, window_size + 1) # compare the stocks we have to the next state
+#     if action == 1 and initial_money >= close[t]:
+#         if buy < 0:
+#             buy = 1
+#         if buy > max_buy:
+#             buy_units = max_buy
+#         else:
+#             buy_units = buy
+#         total_buy = buy_units * close[t]
+#         initial_money -= total_buy
+#         inventory.append(total_buy)
+#         quantity += buy_units
+#     elif action == 2 and len(inventory) > 0:
+#         if quantity > max_sell:
+#             sell_units = max_sell
+#         else:
+#             sell_units = quantity
+#         quantity -= sell_units
+#         total_sell = sell_units * close[t]
+#         initial_money += total_sell
+#
+#     state = next_state
+# ((initial_money - starting_money) / starting_money) * 100
+#
+# for t in range(0, len_close, skip):
+#     portfolio = act(weight, state)
+#     next_state = get_state(close, t+1, window_size + 1)
 
 # In[77]:
 
@@ -349,9 +349,10 @@ class Agent:
     LEARNING_RATE = 0.03
 
     def __init__(
-        self, model, money, max_buy, max_sell, close, window_size, skip
+        self, model, money, max_buy, max_sell, close, window_size, skip, num_stocks
     ):
         self.window_size = window_size
+        self.num_stocks = num_stocks
         self.skip = skip
         self.close = close
         self.model = model
@@ -366,11 +367,11 @@ class Agent:
             self.LEARNING_RATE,
         )
 
-    def act(self, sequence):
+    def act_old(self, sequence):
         decision, buy = self.model.predict(np.array(sequence))
         return np.argmax(decision[0]), int(buy[0])
 
-    def get_reward(self, weights):
+    def get_reward_old(self, weights):
         initial_money = self.initial_money
         starting_money = initial_money
         # len_close = len(self.close) - 1
@@ -405,6 +406,54 @@ class Agent:
 
             state = next_state
         return ((initial_money - starting_money) / starting_money) * 100
+
+    def softmax(x):
+        """Compute softmax values for each sets of scores in x."""
+        e_x = np.exp(x - np.max(x))
+        return e_x / e_x.sum(axis=1)
+
+    def act(self, sequence):
+        decision = self.model.predict(np.array(sequence))
+        return softmax(decision)
+
+    def get_reward(self, weights): # This feels weird, we are getting way too high of a return. Lets try limiting the algorithm, or trying different data
+        # num_stocks = self.num_stocks # This will need to be used to calculate num of iterations as well as input layer size with window_size
+        # window_size = self.window_size
+        self.model.weights = weights
+
+        cur_state = get_state(self.close, 0, self.window_size + 1)
+        # weight = model
+        initial_money = self.initial_money
+        starting_money = initial_money
+
+        # cur_state = get_state(close, 0, window_size + 1).reshape(num_stocks,window_size)
+        close_s = self.close.reshape(num_stocks,int(len(close)/num_stocks))
+
+        for t in range(0, len(close_s[0]) - 1, self.skip):
+
+            portfolio = self.act(cur_state)
+            next_state = get_state(self.close, t + 1, self.window_size + 1).reshape(self.num_stocks,self.window_size)
+
+            investment_1 = initial_money * portfolio # Calculate initial investment according to the predicted portfolio amounts
+
+            perc_change = []
+            for i in range(len(close_s)):
+                # Calculate the percentage change for the stocks on the next day
+                change = ((close_s[i][t] + next_state[i][-1]) / close_s[i][0])
+                perc_change.append(change)
+
+            investment_2 = perc_change * investment_1 # Apply those percentage changes to our total stocks to update our investment
+
+            initial_money = np.sum(investment_2)
+            cur_state = next_state.flatten()
+
+            # print("Money change         : ", np.sum(investment_2) - np.sum(investment_1))
+            # print("Initial Money        : ", initial_money)
+            # print("Portfolio percentage : ", portfolio)
+            # print("Portfolio perc change: ", perc_change)
+
+        return ((initial_money - starting_money) / starting_money) * 100
+
 
     def fit(self, iterations, checkpoint):
         self.es.train(iterations, print_every = checkpoint)
@@ -487,6 +536,7 @@ agent = Agent(
     max_sell = 5,
     close = close,
     window_size = window_size,
+    num_stocks = num_stocks,
     skip = 1,
 )
 
