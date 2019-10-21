@@ -7,10 +7,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import math
 sns.set()
 
 import os
-os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 
 # In[21]:
 
@@ -247,6 +248,48 @@ def act(model, sequence):
     decision = model.predict(np.array(sequence))
     return softmax(decision)
 
+def buy_stock(portfolio, close_s, money, inventory, limit, t):
+    """
+        Function that takes in portfolio weights (percentage of each stock in the entire portfolio),
+        the current stock prices (close price) and the money we currently have
+        and calculates the maximum number of stocks we can buy with the weights given in the portfolio.
+
+        Inventory is the dictionary containing how many stocks we own.
+        Limit puts a maximum number of stock we can purchase
+        t is the current time step
+
+        TODO: Need to be able to sell stock to to rebalance toward the portfolio percentages.
+        TODO: We also do not have the ability to hold stock, we are selling all of our stock every day and resetting?
+    """
+
+    # portfolio_money = portfolio[0] * money
+
+    c = 0
+    portfolio_money = [close_s[i][t] * inventory[i] for i in range(len(close_s))] # This is wrong, need to also add in our left over cash not in stocks
+
+    for m in portfolio_money:
+        print(m)
+        num_stock = math.floor(m / close_s[c][t])
+
+        print(num_stock)
+        if num_stock <= limit:
+            inventory[c] = num_stock
+        else:
+            inventory[c] = limit
+
+        money -= inventory[c] * close_s[c][t]
+
+        c += 1
+
+    return inventory, money
+
+portfolio
+inventory, _ = buy_stock(portfolio,close_s, 10000, inventory, 20, 1)
+inventory
+
+
+portfolio = act(weight, cur_state)
+cur_state[0][-1]
 # Testing one iteration of the new reward function
 # This assumes we can purchase partial stocks and has no limits
 num_stocks = 3 # This will need to be used to calculate num of iterations as well as input layer size with window_size
@@ -262,10 +305,16 @@ starting_money = initial_money
 close_s = close.reshape(num_stocks,int(len(close)/num_stocks))
 skip = 1
 
+# Initialize a dictionary to keep track of which stocks we can buy
+inventory = {}
+limit = 10
+
 for t in range(0, len(close_s[0]) - 1, skip):
 
     portfolio = act(weight, cur_state)
     next_state = get_state(close, t + 1, window_size + 1).reshape(num_stocks,window_size)
+
+    inventory, initial_money = buy_stock(portfolio, close_s, initial_money, inventory, limit, t)
 
     investment_1 = initial_money * portfolio # Calculate initial investment according to the predicted portfolio amounts
 
