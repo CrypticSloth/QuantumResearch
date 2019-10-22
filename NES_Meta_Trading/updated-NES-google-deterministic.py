@@ -259,6 +259,7 @@ def buy_stock(portfolio, close_s, money, inventory, limit, t):
         t is the current time step
 
         TODO: Getting negetive inventory values from negetive cash
+        TODO: instead of dealing with cash amounts we should deal with percentage gain (normalized)?
     """
 
     c = 0
@@ -266,24 +267,25 @@ def buy_stock(portfolio, close_s, money, inventory, limit, t):
 
     portfolio_money = portfolio[0] * cash
 
-    print("Cash:   ", cash)
-    print("P money:", np.sum(portfolio_money))
+    # print("Cash:   ", cash)
+    # print("P money:", np.sum(portfolio_money))
 
+    p = []
     for m in portfolio_money:
         num_stock = math.floor(m / close_s[c][t])
-
+        p.append(close_s[c][t])
         if num_stock <= limit:
             inventory[c] = num_stock
         else:
             inventory[c] = limit
 
-        money -= inventory[c] * close_s[c][t]
-        print(money)
-
+        cash -= (inventory[c] * close_s[c][t])
+        # print(cash)
         c += 1
 
-    print(inventory)
-    return inventory, money
+    # print("prices: ",p)
+    # print("inv:    ",inventory)
+    return inventory, cash
 
 def stock_value(inventory, money, close_s, t):
     """ Calculate current stock value of stock inventory and cash based on timestep t"""
@@ -309,6 +311,7 @@ skip = 1
 # Initialize a dictionary to keep track of which stocks we can buy
 keys = range(num_stocks)
 cur_inventory = {key: 0 for key in keys}
+# cur_money = initial_money
 limit = 5
 
 for t in range(0, len(close_s[0]) - 1, skip):
@@ -318,30 +321,8 @@ for t in range(0, len(close_s[0]) - 1, skip):
 
     next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, limit, t)
 
-    # investment_1 = stock_value(cur_inventory, initial_money, close_s, t)
-    # investment_2 = stock_value(next_inventory, initial_money, close_s, t)
-
-
-    # investment_1 = initial_money * portfolio # Calculate initial investment according to the predicted portfolio amounts
-    #
-    # perc_change = []
-    # for i in range(len(close_s)):
-    #     # Calculate the percentage change for the stocks on the next day
-    #     change = ((close_s[i][t] + next_state[i][-1]) / close_s[i][0])
-    #     perc_change.append(change)
-    #
-    # investment_2 = perc_change * investment_1 # Apply those percentage changes to our total stocks to update our investment
-    #
-    # initial_money = np.sum(investment_2)
     cur_state = next_state.flatten()
     cur_inventory = next_inventory
-
-close_s
-    # print("Money change         : ", np.sum(investment_2) - np.sum(investment_1))
-    # print("Initial Money        : ", initial_money)
-    # print("Portfolio percentage : ", portfolio)
-    # print("Portfolio perc change: ", perc_change)
-
 ((initial_money - starting_money) / starting_money) * 100
 
 # In[67]:
