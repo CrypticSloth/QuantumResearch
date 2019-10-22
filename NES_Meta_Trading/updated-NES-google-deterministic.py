@@ -258,27 +258,31 @@ def buy_stock(portfolio, close_s, money, inventory, limit, t):
         Limit puts a maximum number of stock we can purchase
         t is the current time step
 
-        TODO: Getting negetive inventory values
+        TODO: Getting negetive inventory values from negetive cash
     """
 
     c = 0
-    cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money # reset our inventory
+    cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money # reset our inventory into cash
 
     portfolio_money = portfolio[0] * cash
+
+    print("Cash:   ", cash)
+    print("P money:", np.sum(portfolio_money))
 
     for m in portfolio_money:
         num_stock = math.floor(m / close_s[c][t])
 
-        print(num_stock)
         if num_stock <= limit:
             inventory[c] = num_stock
         else:
             inventory[c] = limit
 
         money -= inventory[c] * close_s[c][t]
+        print(money)
 
         c += 1
 
+    print(inventory)
     return inventory, money
 
 def stock_value(inventory, money, close_s, t):
@@ -286,13 +290,7 @@ def stock_value(inventory, money, close_s, t):
     cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money
     return cash
 
-portfolio
-inventory, money = buy_stock(portfolio,close_s, 10000, inventory, 20, 1)
-inventory
-money
 
-portfolio = act(weight, cur_state)
-cur_state[0][-1]
 # Testing one iteration of the new reward function
 # This assumes we can purchase partial stocks and has no limits
 num_stocks = 3 # This will need to be used to calculate num of iterations as well as input layer size with window_size
@@ -311,7 +309,7 @@ skip = 1
 # Initialize a dictionary to keep track of which stocks we can buy
 keys = range(num_stocks)
 cur_inventory = {key: 0 for key in keys}
-limit = 1000
+limit = 5
 
 for t in range(0, len(close_s[0]) - 1, skip):
 
@@ -338,6 +336,7 @@ for t in range(0, len(close_s[0]) - 1, skip):
     cur_state = next_state.flatten()
     cur_inventory = next_inventory
 
+close_s
     # print("Money change         : ", np.sum(investment_2) - np.sum(investment_1))
     # print("Initial Money        : ", initial_money)
     # print("Portfolio percentage : ", portfolio)
@@ -603,6 +602,7 @@ agent = Agent(
 
 
 agent.fit(iterations = 500, checkpoint = 10)
+
 
 
 # In[80]:
