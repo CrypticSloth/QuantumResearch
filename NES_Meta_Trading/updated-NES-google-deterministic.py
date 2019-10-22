@@ -258,17 +258,15 @@ def buy_stock(portfolio, close_s, money, inventory, limit, t):
         Limit puts a maximum number of stock we can purchase
         t is the current time step
 
-        TODO: Need to be able to sell stock to to rebalance toward the portfolio percentages.
-        TODO: We also do not have the ability to hold stock, we are selling all of our stock every day and resetting?
+        TODO: Getting negetive inventory values
     """
 
-    # portfolio_money = portfolio[0] * money
-
     c = 0
-    portfolio_money = [close_s[i][t] * inventory[i] for i in range(len(close_s))] # This is wrong, need to also add in our left over cash not in stocks
+    cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money # reset our inventory
+
+    portfolio_money = portfolio[0] * cash
 
     for m in portfolio_money:
-        print(m)
         num_stock = math.floor(m / close_s[c][t])
 
         print(num_stock)
@@ -283,10 +281,15 @@ def buy_stock(portfolio, close_s, money, inventory, limit, t):
 
     return inventory, money
 
-portfolio
-inventory, _ = buy_stock(portfolio,close_s, 10000, inventory, 20, 1)
-inventory
+def stock_value(inventory, money, close_s, t):
+    """ Calculate current stock value of stock inventory and cash based on timestep t"""
+    cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money
+    return cash
 
+portfolio
+inventory, money = buy_stock(portfolio,close_s, 10000, inventory, 20, 1)
+inventory
+money
 
 portfolio = act(weight, cur_state)
 cur_state[0][-1]
@@ -306,28 +309,34 @@ close_s = close.reshape(num_stocks,int(len(close)/num_stocks))
 skip = 1
 
 # Initialize a dictionary to keep track of which stocks we can buy
-inventory = {}
-limit = 10
+keys = range(num_stocks)
+cur_inventory = {key: 0 for key in keys}
+limit = 1000
 
 for t in range(0, len(close_s[0]) - 1, skip):
 
     portfolio = act(weight, cur_state)
     next_state = get_state(close, t + 1, window_size + 1).reshape(num_stocks,window_size)
 
-    inventory, initial_money = buy_stock(portfolio, close_s, initial_money, inventory, limit, t)
+    next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, limit, t)
 
-    investment_1 = initial_money * portfolio # Calculate initial investment according to the predicted portfolio amounts
+    # investment_1 = stock_value(cur_inventory, initial_money, close_s, t)
+    # investment_2 = stock_value(next_inventory, initial_money, close_s, t)
 
-    perc_change = []
-    for i in range(len(close_s)):
-        # Calculate the percentage change for the stocks on the next day
-        change = ((close_s[i][t] + next_state[i][-1]) / close_s[i][0])
-        perc_change.append(change)
 
-    investment_2 = perc_change * investment_1 # Apply those percentage changes to our total stocks to update our investment
-
-    initial_money = np.sum(investment_2)
+    # investment_1 = initial_money * portfolio # Calculate initial investment according to the predicted portfolio amounts
+    #
+    # perc_change = []
+    # for i in range(len(close_s)):
+    #     # Calculate the percentage change for the stocks on the next day
+    #     change = ((close_s[i][t] + next_state[i][-1]) / close_s[i][0])
+    #     perc_change.append(change)
+    #
+    # investment_2 = perc_change * investment_1 # Apply those percentage changes to our total stocks to update our investment
+    #
+    # initial_money = np.sum(investment_2)
     cur_state = next_state.flatten()
+    cur_inventory = next_inventory
 
     # print("Money change         : ", np.sum(investment_2) - np.sum(investment_1))
     # print("Initial Money        : ", initial_money)
