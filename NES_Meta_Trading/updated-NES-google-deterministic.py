@@ -197,7 +197,7 @@ class Deep_Evolution_Strategy:
                     w
                     + self.learning_rate
                     / (self.population_size * self.sigma)
-                    * np.dot(A.T, rewards).T # Our task is to make this meta by storing each gradient into a global gradient from the MAML paper
+                    * np.dot(A.T, rewards).T + 0.00001# Our task is to make this meta by storing each gradient into a global gradient from the MAML paper
                 )
             if (i + 1) % print_every == 0:
                 print(
@@ -242,7 +242,7 @@ class Model:
 def softmax(x):
     """Compute softmax values for each sets of scores in x."""
     e_x = np.exp(x - np.max(x))
-    return e_x / e_x.sum(axis=1)
+    return e_x / e_x.sum(axis=1) + 0.00001
 
 def act(model, sequence):
     decision = model.predict(np.array(sequence))
@@ -258,17 +258,13 @@ def buy_stock(portfolio, close_s, money, inventory, limit, t):
         Limit puts a maximum number of stock we can purchase
         t is the current time step
 
-        TODO: Getting negetive inventory values from negetive cash
-        TODO: instead of dealing with cash amounts we should deal with percentage gain (normalized)?
+        TODO: instead of dealing with cash amounts we should deal with normalized return (Ri - mean_R) / (std_R)
     """
 
     c = 0
     cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money # reset our inventory into cash
 
     portfolio_money = portfolio[0] * cash
-
-    # print("Cash:   ", cash)
-    # print("P money:", np.sum(portfolio_money))
 
     p = []
     for m in portfolio_money:
@@ -280,11 +276,8 @@ def buy_stock(portfolio, close_s, money, inventory, limit, t):
             inventory[c] = limit
 
         cash -= (inventory[c] * close_s[c][t])
-        # print(cash)
         c += 1
 
-    # print("prices: ",p)
-    # print("inv:    ",inventory)
     return inventory, cash
 
 def stock_value(inventory, money, close_s, t):
@@ -311,7 +304,6 @@ skip = 1
 # Initialize a dictionary to keep track of which stocks we can buy
 keys = range(num_stocks)
 cur_inventory = {key: 0 for key in keys}
-# cur_money = initial_money
 limit = 5
 
 for t in range(0, len(close_s[0]) - 1, skip):
@@ -323,58 +315,9 @@ for t in range(0, len(close_s[0]) - 1, skip):
 
     cur_state = next_state.flatten()
     cur_inventory = next_inventory
-((initial_money - starting_money) / starting_money) * 100
+((initial_money - starting_money) / starting_money) * 100 + 0.00001
 
-# In[67]:
-
-#
-# initial_money = 10000
-# starting_money = initial_money
-# len_close = int(len(close) / num_stocks) - 1
-# weight = model
-# skip = 1
-#
-# state = get_state(close, 0, window_size + 1)
-# print(np.shape(state))
-# print(np.shape(close))
-# inventory = []
-# quantity = 0
-#
-# max_buy = 5
-# max_sell = 5
-#
-# # Change this reward function to make it deterministic
-# for t in range(0, len_close, skip):
-#     action, buy = act(weight, state) # bought some stock in the portfolio
-#     next_state = get_state(close, t + 1, window_size + 1) # compare the stocks we have to the next state
-#     if action == 1 and initial_money >= close[t]:
-#         if buy < 0:
-#             buy = 1
-#         if buy > max_buy:
-#             buy_units = max_buy
-#         else:
-#             buy_units = buy
-#         total_buy = buy_units * close[t]
-#         initial_money -= total_buy
-#         inventory.append(total_buy)
-#         quantity += buy_units
-#     elif action == 2 and len(inventory) > 0:
-#         if quantity > max_sell:
-#             sell_units = max_sell
-#         else:
-#             sell_units = quantity
-#         quantity -= sell_units
-#         total_sell = sell_units * close[t]
-#         initial_money += total_sell
-#
-#     state = next_state
-# ((initial_money - starting_money) / starting_money) * 100
-#
-# for t in range(0, len_close, skip):
-#     portfolio = act(weight, state)
-#     next_state = get_state(close, t+1, window_size + 1)
-
-# In[77]:
+# %%
 
 
 import time
@@ -387,7 +330,7 @@ class Agent:
     LEARNING_RATE = 0.03
 
     def __init__(
-        self, model, money, max_buy, max_sell, close, window_size, skip, num_stocks
+        self, model, money, max_buy, max_sell, limit, close, window_size, skip, num_stocks
     ):
         self.window_size = window_size
         self.num_stocks = num_stocks
@@ -397,6 +340,7 @@ class Agent:
         self.initial_money = money
         self.max_buy = max_buy
         self.max_sell = max_sell
+        self.limit = limit
         self.es = Deep_Evolution_Strategy(
             self.model.get_weights(),
             self.get_reward,
@@ -443,16 +387,49 @@ class Agent:
                 initial_money += total_sell
 
             state = next_state
-        return ((initial_money - starting_money) / starting_money) * 100
+        return ((initial_money - starting_money) / starting_money) * 100 + 0.00001
 
     def softmax(x):
         """Compute softmax values for each sets of scores in x."""
         e_x = np.exp(x - np.max(x))
-        return e_x / e_x.sum(axis=1)
+        return e_x / e_x.sum(axis=1) + 0.00001
 
     def act(self, sequence):
         decision = self.model.predict(np.array(sequence))
         return softmax(decision)
+
+    def buy_stock(portfolio, close_s, money, inventory, limit, t):
+        """
+            Function that takes in portfolio weights (percentage of each stock in the entire portfolio),
+            the current stock prices (close price) and the money we currently have
+            and calculates the maximum number of stocks we can buy with the weights given in the portfolio.
+
+            Inventory is the dictionary containing how many stocks we own.
+            Limit puts a maximum number of stock we can purchase
+            t is the current time step
+
+            TODO: Getting negetive inventory values from negetive cash
+            TODO: instead of dealing with cash amounts we should deal with percentage gain (normalized)?
+        """
+
+        c = 0
+        cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money # reset our inventory into cash
+
+        portfolio_money = portfolio[0] * cash
+
+        p = []
+        for m in portfolio_money:
+            num_stock = math.floor(m / close_s[c][t])
+            p.append(close_s[c][t])
+            if num_stock <= limit:
+                inventory[c] = num_stock
+            else:
+                inventory[c] = limit
+
+            cash -= (inventory[c] * close_s[c][t])
+            c += 1
+
+        return inventory, cash
 
     def get_reward(self, weights): # This feels weird, we are getting way too high of a return. Lets try limiting the algorithm, or trying different data
         # num_stocks = self.num_stocks # This will need to be used to calculate num of iterations as well as input layer size with window_size
@@ -467,30 +444,21 @@ class Agent:
         # cur_state = get_state(close, 0, window_size + 1).reshape(num_stocks,window_size)
         close_s = self.close.reshape(num_stocks,int(len(close)/num_stocks))
 
+        # Initialize a dictionary to keep track of which stocks we can buy
+        keys = range(self.num_stocks)
+        cur_inventory = {key: 0 for key in keys}
+
         for t in range(0, len(close_s[0]) - 1, self.skip):
 
             portfolio = self.act(cur_state)
             next_state = get_state(self.close, t + 1, self.window_size + 1).reshape(self.num_stocks,self.window_size)
 
-            investment_1 = initial_money * portfolio # Calculate initial investment according to the predicted portfolio amounts
+            next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
 
-            perc_change = []
-            for i in range(len(close_s)):
-                # Calculate the percentage change for the stocks on the next day
-                change = ((close_s[i][t] + next_state[i][-1]) / close_s[i][0])
-                perc_change.append(change)
-
-            investment_2 = perc_change * investment_1 # Apply those percentage changes to our total stocks to update our investment
-
-            initial_money = np.sum(investment_2)
             cur_state = next_state.flatten()
+            cur_inventory = next_inventory
 
-            # print("Money change         : ", np.sum(investment_2) - np.sum(investment_1))
-            # print("Initial Money        : ", initial_money)
-            # print("Portfolio percentage : ", portfolio)
-            # print("Portfolio perc change: ", perc_change)
-
-        return ((initial_money - starting_money) / starting_money) * 100
+        return ((initial_money - starting_money) / starting_money) * 100 + 0.00001
 
 
     def fit(self, iterations, checkpoint):
@@ -546,7 +514,7 @@ class Agent:
                 )
             state = next_state
 
-        invest = ((initial_money - starting_money) / starting_money) * 100
+        invest = ((initial_money - starting_money) / starting_money) * 100 + 0.00001
         print(
             '\ntotal gained %f, total investment %f %%'
             % (initial_money - starting_money, invest)
@@ -572,6 +540,7 @@ agent = Agent(
     money = 10000,
     max_buy = 5,
     max_sell = 5,
+    limit = 5,
     close = close,
     window_size = window_size,
     num_stocks = num_stocks,
