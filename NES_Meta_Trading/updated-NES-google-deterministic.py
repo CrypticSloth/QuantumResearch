@@ -16,73 +16,8 @@ os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 # In[21]:
 
 
-plt.figure(figsize = (10, 5))
-bins = np.linspace(-10, 10, 100)
-
-solution = np.random.randn(100)
-w = np.random.randn(100)
-
-plt.hist(solution, bins, alpha = 0.5, label = 'solution', color = 'r')
-plt.hist(w, bins, alpha = 0.5, label = 'random', color = 'y')
-plt.legend()
-plt.show()
-
-
-# In[22]:
-
-
-def f(w):
-    return -np.sum(np.square(solution - w))
-
-
-npop = 50
-sigma = 0.1
-alpha = 0.001
-
-for i in range(5000):
-
-    if (i + 1) % 1000 == 0:
-        print(
-            'iter %d. w: %s, solution: %s, reward: %f'
-            % (i + 1, str(w[-1]), str(solution[-1]), f(w))
-        )
-    N = np.random.randn(npop, 100)
-    R = np.zeros(npop)
-    for j in range(npop):
-        w_try = w + sigma * N[j]
-        R[j] = f(w_try)
-
-    A = (R - np.mean(R)) / np.std(R)
-    w = w + alpha / (npop * sigma) * np.dot(N.T, A)
-
-
-# In[12]:
-
-
-'''
-I want to compare my first two individuals with my real w
-'''
-plt.figure(figsize=(10,5))
-
-sigma = 0.1
-N = np.random.randn(npop, 100)
-individuals = []
-for j in range(2):
-    individuals.append(w + sigma * N[j])
-
-
-plt.hist(w, bins, alpha=0.5, label='w',color='r')
-plt.hist(individuals[0], bins, alpha=0.5, label='individual 1')
-plt.hist(individuals[1], bins, alpha=0.5, label='individual 2')
-plt.legend()
-plt.show()
-
-
-# In[29]:
-
-
 import pandas as pd
-google = pd.read_csv('dataset/GOOG.csv')
+google = pd.read_csv('dataset/train/GOOG.csv')
 google.head()
 
 
@@ -95,9 +30,9 @@ def load_data(num_days = 30):
     load in all stock data from the path and return the close values
     '''
 
-    google = pd.read_csv('dataset/GOOG-year.csv')
-    amd = pd.read_csv('dataset/AMD.csv')
-    fb = pd.read_csv('dataset/FB.csv')
+    google = pd.read_csv('dataset/train/GOOG-year.csv')
+    amd = pd.read_csv('dataset/train/AMD.csv')
+    fb = pd.read_csv('dataset/train/FB.csv')
 
     np.shape(google)
     np.shape(amd)
@@ -131,25 +66,25 @@ def get_state(data, t, n, num_days = 30,num_stocks = 3):
 # In[60]:
 
 
-num_days = 23
+num_days = 30
 num_stocks = 3 # This will need to be used to calculate the iterations and input layer sizes along with num_days
-close = load_data()
+close = load_data(num_days)
 np.shape(close)
 len(close)
-get_state(close, 29, 10)
+get_state(close, 19, 10, num_days)
 
 
 # In[61]:
 
 
-get_state(close, 1, 10)
+get_state(close, 1, 10, num_days)
 
 
 
 # In[62]:
 
-get_state(close, 2, 10)
-np.shape(get_state(close, 2, 10))
+get_state(close, 2, 10, num_days)
+np.shape(get_state(close, 2, 10, num_days))
 
 
 # In[63]:
@@ -292,7 +227,7 @@ num_stocks = 3 # This will need to be used to calculate num of iterations as wel
 window_size = 9
 model = Model(window_size*num_stocks, 500, 3)
 
-cur_state = get_state(close, 0, window_size + 1)
+cur_state = get_state(close, 0, window_size + 1, num_days)
 weight = model
 initial_money = 10000
 starting_money = initial_money
