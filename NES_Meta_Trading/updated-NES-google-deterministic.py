@@ -190,7 +190,7 @@ class Deep_Evolution_Strategy:
                     self.weights, population[k]
                 )
                 rewards[k] = self.reward_function(weights_population)
-            rewards = (rewards - np.mean(rewards)) / np.std(rewards)
+            rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001) # Normalized the rewards here...?
             for index, w in enumerate(self.weights):
                 A = np.array([p[index] for p in population])
                 self.weights[index] = (
@@ -242,7 +242,7 @@ class Model:
 def softmax(x):
     """Compute softmax values for each sets of scores in x."""
     e_x = np.exp(x - np.max(x))
-    return e_x / e_x.sum(axis=1) + 0.00001
+    return e_x / (e_x.sum(axis=1) + 0.00001)
 
 def act(model, sequence):
     decision = model.predict(np.array(sequence))
@@ -268,7 +268,7 @@ def buy_stock(portfolio, close_s, money, inventory, limit, t):
 
     p = []
     for m in portfolio_money:
-        num_stock = math.floor(m / close_s[c][t])
+        num_stock = math.floor(m / (close_s[c][t] + 0.00001))
         p.append(close_s[c][t])
         if num_stock <= limit:
             inventory[c] = num_stock
@@ -315,7 +315,7 @@ for t in range(0, len(close_s[0]) - 1, skip):
 
     cur_state = next_state.flatten()
     cur_inventory = next_inventory
-((initial_money - starting_money) / starting_money) * 100 + 0.00001
+((initial_money - starting_money) / (starting_money + 0.00001)) * 100
 
 # %%
 
@@ -392,7 +392,7 @@ class Agent:
     def softmax(x):
         """Compute softmax values for each sets of scores in x."""
         e_x = np.exp(x - np.max(x))
-        return e_x / e_x.sum(axis=1) + 0.00001
+        return e_x / (e_x.sum(axis=1) + 0.00001)
 
     def act(self, sequence):
         decision = self.model.predict(np.array(sequence))
@@ -419,7 +419,7 @@ class Agent:
 
         p = []
         for m in portfolio_money:
-            num_stock = math.floor(m / close_s[c][t])
+            num_stock = math.floor(m / (close_s[c][t] + 0.000001))
             p.append(close_s[c][t])
             if num_stock <= limit:
                 inventory[c] = num_stock
@@ -431,9 +431,14 @@ class Agent:
 
         return inventory, cash
 
-    def get_reward(self, weights): # This feels weird, we are getting way too high of a return. Lets try limiting the algorithm, or trying different data
-        # num_stocks = self.num_stocks # This will need to be used to calculate num of iterations as well as input layer size with window_size
-        # window_size = self.window_size
+    def get_reward(self, weights):
+        '''
+            Reward function.
+
+            Model after the reward found here: https://github.com/wassname/rl-portfolio-management/blob/master/rl_portfolio_management/environments/portfolio.py
+        '''
+
+
         self.model.weights = weights
 
         cur_state = get_state(self.close, 0, self.window_size + 1)
@@ -458,7 +463,7 @@ class Agent:
             cur_state = next_state.flatten()
             cur_inventory = next_inventory
 
-        return ((initial_money - starting_money) / starting_money) * 100 + 0.00001
+        return ((initial_money - starting_money) / (starting_money + 0.00001)) * 100
 
 
     def fit(self, iterations, checkpoint):
@@ -514,7 +519,7 @@ class Agent:
                 )
             state = next_state
 
-        invest = ((initial_money - starting_money) / starting_money) * 100 + 0.00001
+        invest = ((initial_money - starting_money) / (starting_money + 0.00001)) * 100
         print(
             '\ntotal gained %f, total investment %f %%'
             % (initial_money - starting_money, invest)
