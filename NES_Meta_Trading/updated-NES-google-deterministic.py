@@ -125,7 +125,7 @@ class Deep_Evolution_Strategy:
                     self.weights, population[k]
                 )
                 rewards[k] = self.reward_function(weights_population)
-            rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001) # Normalized the rewards here...?
+            rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001) # Normalized the rewards here. Do we need to normalize if they are log returns?
             for index, w in enumerate(self.weights):
                 A = np.array([p[index] for p in population])
                 self.weights[index] = (
@@ -137,7 +137,7 @@ class Deep_Evolution_Strategy:
             if (i + 1) % print_every == 0:
                 print(
                     'iter %d. reward: %f'
-                    % (i + 1, self.reward_function(self.weights))
+                    % (i + 1, self.reward_function(self.weights, return_reward = True))
                 )
         print('time taken to train:', time.time() - lasttime, 'seconds')
 
@@ -199,7 +199,7 @@ def buy_stock(portfolio, close_s, money, inventory, limit, t):
     c = 0
     cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money # reset our inventory into cash
 
-    portfolio_money = portfolio[0] * cash
+    portfolio_money = portfolio[0] * cash # portfolio is an array of an array : [[]]
 
     p = []
     for m in portfolio_money:
@@ -216,7 +216,9 @@ def buy_stock(portfolio, close_s, money, inventory, limit, t):
     return inventory, cash
 
 def stock_value(inventory, money, close_s, t):
-    """ Calculate current stock value of stock inventory and cash based on timestep t"""
+    """
+    Calculate current stock value of stock inventory and cash based on timestep t
+    """
     cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money
     return cash
 
@@ -251,6 +253,8 @@ for t in range(0, len(close_s[0]) - 1, skip):
     cur_state = next_state.flatten()
     cur_inventory = next_inventory
 ((initial_money - starting_money) / (starting_money + 0.00001)) * 100
+(initial_money / starting_money - 1) * 100
+np.log((initial_money + 0.00001) / (starting_money + 0.00001))
 
 # %%
 
@@ -366,13 +370,17 @@ class Agent:
 
         return inventory, cash
 
-    def get_reward(self, weights):
+    def get_reward(self, weights, return_reward=False):
         '''
             Reward function.
 
             Model after the reward found here: https://github.com/wassname/rl-portfolio-management/blob/master/rl_portfolio_management/environments/portfolio.py
-        '''
+            In the paper the variables are:
+                p1 = initial_money
+                p0 = starting_money
 
+            We could add cost as well to this in the future.
+        '''
 
         self.model.weights = weights
 
@@ -398,7 +406,13 @@ class Agent:
             cur_state = next_state.flatten()
             cur_inventory = next_inventory
 
-        return ((initial_money - starting_money) / (starting_money + 0.00001)) * 100
+        rho1 = (initial_money / starting_money - 1) * 100 # rate of returns
+        r1 = np.log((initial_money + 0.00001) / (starting_money + 0.00001)) # log rate of return (eq10)
+
+        if return_reward == True:
+            return rho1
+        else:
+            return r1
 
 
     def fit(self, iterations, checkpoint):
@@ -474,7 +488,7 @@ class Agent:
 # In[78]:
 
 
-model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = 3)
+model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
 agent = Agent(
     model = model,
     money = 10000,
@@ -491,7 +505,7 @@ agent = Agent(
 # In[79]:
 
 
-agent.fit(iterations = 500, checkpoint = 10)
+agent.fit(iterations = 250, checkpoint = 10)
 
 
 
