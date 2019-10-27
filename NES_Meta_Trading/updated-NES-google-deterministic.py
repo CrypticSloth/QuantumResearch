@@ -65,6 +65,7 @@ np.shape(close)
 len(close)
 get_state(close, 19, 10, num_days,num_stocks)
 
+close.reshape(num_stocks, num_days)
 # In[63]:
 
 
@@ -235,7 +236,6 @@ np.log((initial_money + 0.00001) / (starting_money + 0.00001))
 
 # %%
 
-
 import time
 
 
@@ -248,6 +248,7 @@ class Agent:
     def __init__(
         self, model, money, max_buy, max_sell, limit, close, window_size, skip, num_stocks, num_days
     ):
+        self.window_size = window_size
         self.window_size = window_size
         self.num_stocks = num_stocks
         self.num_days = num_days
@@ -366,7 +367,7 @@ class Agent:
         # weight = model
         initial_money = self.initial_money
         starting_money = initial_money
-        close_s = self.close.reshape(num_stocks,int(len(close)/num_stocks))
+        close_s = self.close.reshape(self.num_stocks,int(len(self.close)/self.num_stocks))
 
         # Initialize a dictionary to keep track of which stocks we can buy
         keys = range(self.num_stocks)
@@ -395,76 +396,70 @@ class Agent:
         self.es.train(iterations, print_every = checkpoint)
 
     def buy(self):
+        cur_state = get_state(self.close, 0, self.window_size + 1, self.num_days, self.num_stocks)
+        weight = self.model
         initial_money = self.initial_money
-        len_close = len(self.close) - 1
-        state = get_state(self.close, 0, self.window_size + 1, self.num_days, self.num_stocks)
         starting_money = initial_money
-        states_sell = []
-        states_buy = []
-        inventory = []
-        quantity = 0
-        for t in range(0, len_close, self.skip):
-            action, buy = self.act(state)
-            next_state = get_state(self.close, t + 1, self.window_size + 1)
-            if action == 1 and initial_money >= self.close[t]:
-                if buy < 0:
-                    buy = 1
-                if buy > self.max_buy:
-                    buy_units = self.max_buy
-                else:
-                    buy_units = buy
-                total_buy = buy_units * self.close[t]
-                initial_money -= total_buy
-                inventory.append(total_buy)
-                quantity += buy_units
-                states_buy.append(t)
-                print(
-                    'day %d: buy %d units at price %f, total balance %f'
-                    % (t, buy_units, total_buy, initial_money)
-                )
-            elif action == 2 and len(inventory) > 0:
-                bought_price = inventory.pop(0)
-                if quantity > self.max_sell:
-                    sell_units = self.max_sell
-                else:
-                    sell_units = quantity
-                if sell_units < 1:
-                    continue
-                quantity -= sell_units
-                total_sell = sell_units * self.close[t]
-                initial_money += total_sell
-                states_sell.append(t)
-                try:
-                    invest = ((total_sell - bought_price) / bought_price) * 100
-                except:
-                    invest = 0
-                print(
-                    'day %d, sell %d units at price %f, investment %f %%, total balance %f,'
-                    % (t, sell_units, total_sell, invest, initial_money)
-                )
-            state = next_state
+        close_s = self.close.reshape(self.num_stocks,int(len(self.close)/self.num_stocks))
+        skip = 1
 
-        invest = ((initial_money - starting_money) / (starting_money + 0.00001)) * 100
+        # Initialize a dictionary to keep track of which stocks we can buy
+        keys = range(self.num_stocks)
+        cur_inventory = {key: 0 for key in keys}
+
+        inv = []
+
+        for t in range(0, len(close_s[0]) - 1, self.skip):
+
+            portfolio = self.act(cur_state)
+            next_state = get_state(self.close, t + 1, self.window_size + 1, self.num_days, self.num_stocks).reshape(self.num_stocks,self.window_size)
+
+            next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
+
+            # record the inventory
+            inv_list = []
+            for key,value in next_inventory.items():
+                inv_list.append(value)
+            inv.append(inv_list)
+
+            cur_state = next_state.flatten()
+            cur_inventory = next_inventory
+
+        rho1 = (initial_money / starting_money - 1) * 100 # rate of returns
+
+        inv = np.array(inv)
+        inv_d = []
+        for i in range(len(inv) - 1):
+            inv_d.append(inv[i+1] - inv[i])
+        inv_d = np.array(inv_d)
+
+        inv_f = []
+        for i in range(len(inv_d[0])):
+            inv_f.append(np.array(inv_d)[:,i])
+        inv_f = np.array(inv_f)
+
         print(
             '\ntotal gained %f, total investment %f %%'
-            % (initial_money - starting_money, invest)
+            % (initial_money - starting_money, rho1)
         )
-        plt.figure(figsize = (20, 10))
-        plt.plot(close, label = 'true close', c = 'g')
-        plt.plot(
-            close, 'X', label = 'predict buy', markevery = states_buy, c = 'b'
-        )
-        plt.plot(
-            close, 'o', label = 'predict sell', markevery = states_sell, c = 'r'
-        )
-        plt.legend()
-        plt.show()
-
+        for i in range(len(close_s)):
+            plt.figure(figsize = (20, 10))
+            plt.title(names[i])
+            plt.plot(close_s[i], label = 'true close', c = 'g')
+            plt.plot(
+                close_s[i], 'X', label = 'predict buy', markevery = list(np.where(inv_f[i] > 0)[0]), c = 'b'
+            )
+            plt.plot(
+                close_s[i], 'o', label = 'predict sell', markevery = list(np.where(inv_f[i] < 0)[0]), c = 'r'
+            )
+            plt.legend()
+            plt.show()
 
 # In[78]:
 
 num_days = 30
 close, names = load_data("dataset/train/",num_days)
+print(names)
 
 model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = len(names))
 agent = Agent(
