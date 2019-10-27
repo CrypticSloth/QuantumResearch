@@ -236,6 +236,78 @@ np.log((initial_money + 0.00001) / (starting_money + 0.00001))
 
 # %%
 
+<<<<<<< HEAD
+=======
+cur_state = get_state(close, 0, window_size + 1, num_days, num_stocks)
+weight = model
+initial_money = 10000
+starting_money = initial_money
+
+# cur_state = get_state(close, 0, window_size + 1).reshape(num_stocks,window_size)
+close_s = close.reshape(num_stocks,int(len(close)/num_stocks))
+skip = 1
+
+# Initialize a dictionary to keep track of which stocks we can buy
+keys = range(num_stocks)
+cur_inventory = {key: 0 for key in keys}
+limit = 5
+
+
+# Initialize stores for visualization
+states_sell = []
+states_buy = []
+inv = []
+
+for t in range(0, len(close_s[0]) - 1, skip):
+
+    portfolio = act(weight, cur_state)
+    next_state = get_state(close, t + 1, window_size + 1, num_days, num_stocks).reshape(num_stocks,window_size)
+    next_state = get_state(close, t + 1, window_size + 1, num_days, num_stocks).reshape(num_stocks,window_size)
+
+    next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, limit, t)
+    next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, limit, t)
+
+    # record the inventory
+    inv_list = []
+    for key,value in next_inventory.items():
+        inv_list.append(value)
+    inv.append(inv_list)
+
+    cur_state = next_state.flatten()
+    cur_inventory = next_inventory
+
+rho1 = (initial_money / starting_money - 1) * 100 # rate of returns
+
+inv = np.array(inv)
+inv_d = []
+for i in range(len(inv) - 1):
+    inv_d.append(inv[i+1] - inv[i])
+inv_d = np.array(inv_d)
+
+inv_f = []
+for i in range(len(inv_d[0])):
+    inv_f.append(np.array(inv_d)[:,i])
+inv_f = np.array(inv_f)
+
+print(
+    '\ntotal gained %f, total investment %f %%'
+    % (initial_money - starting_money, rho1)
+)
+for i in range(len(close_s)):
+    plt.figure(figsize = (20, 10))
+    plt.title(names[i])
+    plt.plot(close_s[i], label = 'true close', c = 'g')
+    plt.plot(
+        close_s[i], 'X', label = 'predict buy', markevery = list(np.where(inv_f[i] > 0)[0]), c = 'b'
+    )
+    plt.plot(
+        close_s[i], 'o', label = 'predict sell', markevery = list(np.where(inv_f[i] < 0)[0]), c = 'r'
+    )
+    plt.legend()
+    plt.show()
+# %%
+
+>>>>>>> 5fe2bcc7056a71611ec5879fb808cccdbe2af53a
 import time
 
 
