@@ -8,43 +8,34 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import math
+import pandas as pd
 sns.set()
 
 import os
 os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 
-# In[21]:
-
-
-import pandas as pd
-google = pd.read_csv('dataset/train/GOOG.csv')
-google.head()
-
-
 # In[58]:
 
-len(google.Close.values.tolist()[0:30])
-
-def load_data(num_days = 30):
+def load_data(path, num_days = 30):
     '''
     load in all stock data from the path and return the close values
     '''
 
-    google = pd.read_csv('dataset/train/GOOG-year.csv')
-    amd = pd.read_csv('dataset/train/AMD.csv')
-    fb = pd.read_csv('dataset/train/FB.csv')
+    paths = os.listdir(path)
 
-    np.shape(google)
-    np.shape(amd)
-    np.shape(fb)
+    data = []
+    names = []
+    for p in paths:
+        data.append(pd.read_csv(path + p).Close.values.tolist()[0:num_days])
+        names.append(p[:-4])
 
-    google_c = google.Close.values.tolist()[0:num_days]
-    amd_c = amd.Close.values.tolist()[0:num_days]
-    fb_c = fb.Close.values.tolist()[0:num_days]
+    # Check that all data are the same size
+    assert len(set([len(d) for d in data])) == 1, "Stock data has differing number of days recorded"
 
-    return np.array([google_c,amd_c,fb_c]).flatten()
+    return np.array([data]).flatten(), names
 
-def get_state(data, t, n, num_days = 30,num_stocks = 3):
+
+def get_state(data, t, n, num_days,num_stocks):
     '''
         returns an array of an array of size n with the time step of t
         of how much the close value differed from the day before
@@ -67,25 +58,12 @@ def get_state(data, t, n, num_days = 30,num_stocks = 3):
 
 
 num_days = 30
-num_stocks = 3 # This will need to be used to calculate the iterations and input layer sizes along with num_days
-close = load_data(num_days)
+close, names = load_data("dataset/train/",num_days)
+num_stocks = len(names) # This will need to be used to calculate the iterations and input layer sizes along with num_days
+num_stocks
 np.shape(close)
 len(close)
-get_state(close, 19, 10, num_days)
-
-
-# In[61]:
-
-
-get_state(close, 1, 10, num_days)
-
-
-
-# In[62]:
-
-get_state(close, 2, 10, num_days)
-np.shape(get_state(close, 2, 10, num_days))
-
+get_state(close, 19, 10, num_days,num_stocks)
 
 # In[63]:
 
@@ -225,11 +203,10 @@ def stock_value(inventory, money, close_s, t):
 
 # Testing one iteration of the new reward function
 # This assumes we can purchase partial stocks and has no limits
-num_stocks = 3 # This will need to be used to calculate num of iterations as well as input layer size with window_size
 window_size = 9
 model = Model(window_size*num_stocks, 500, 3)
 
-cur_state = get_state(close, 0, window_size + 1, num_days)
+cur_state = get_state(close, 0, window_size + 1, num_days, num_stocks)
 weight = model
 initial_money = 10000
 starting_money = initial_money
@@ -246,7 +223,7 @@ limit = 5
 for t in range(0, len(close_s[0]) - 1, skip):
 
     portfolio = act(weight, cur_state)
-    next_state = get_state(close, t + 1, window_size + 1).reshape(num_stocks,window_size)
+    next_state = get_state(close, t + 1, window_size + 1,num_days,num_stocks).reshape(num_stocks,window_size)
 
     next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, limit, t)
 
@@ -269,10 +246,11 @@ class Agent:
     LEARNING_RATE = 0.03
 
     def __init__(
-        self, model, money, max_buy, max_sell, limit, close, window_size, skip, num_stocks
+        self, model, money, max_buy, max_sell, limit, close, window_size, skip, num_stocks, num_days
     ):
         self.window_size = window_size
         self.num_stocks = num_stocks
+        self.num_days = num_days
         self.skip = skip
         self.close = close
         self.model = model
@@ -299,12 +277,12 @@ class Agent:
         len_close = int(len(self.close)/ num_stocks) - 1
 
         self.model.weights = weights
-        state = get_state(self.close, 0, self.window_size + 1)
+        state = get_state(self.close, 0, self.window_size + 1, self.num_days, self.num_stocks)
         inventory = []
         quantity = 0
         for t in range(0, len_close, self.skip):
             action, buy = self.act(state)
-            next_state = get_state(self.close, t + 1, self.window_size + 1)
+            next_state = get_state(self.close, t + 1, self.window_size + 1, self.num_days, self.num_stocks)
             if action == 1 and initial_money >= self.close[t]:
                 if buy < 0:
                     buy = 1
@@ -384,12 +362,10 @@ class Agent:
 
         self.model.weights = weights
 
-        cur_state = get_state(self.close, 0, self.window_size + 1)
+        cur_state = get_state(self.close, 0, self.window_size + 1, self.num_days, self.num_stocks)
         # weight = model
         initial_money = self.initial_money
         starting_money = initial_money
-
-        # cur_state = get_state(close, 0, window_size + 1).reshape(num_stocks,window_size)
         close_s = self.close.reshape(num_stocks,int(len(close)/num_stocks))
 
         # Initialize a dictionary to keep track of which stocks we can buy
@@ -399,7 +375,7 @@ class Agent:
         for t in range(0, len(close_s[0]) - 1, self.skip):
 
             portfolio = self.act(cur_state)
-            next_state = get_state(self.close, t + 1, self.window_size + 1).reshape(self.num_stocks,self.window_size)
+            next_state = get_state(self.close, t + 1, self.window_size + 1, self.num_days, self.num_stocks).reshape(self.num_stocks,self.window_size)
 
             next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
 
@@ -421,7 +397,7 @@ class Agent:
     def buy(self):
         initial_money = self.initial_money
         len_close = len(self.close) - 1
-        state = get_state(self.close, 0, self.window_size + 1)
+        state = get_state(self.close, 0, self.window_size + 1, self.num_days, self.num_stocks)
         starting_money = initial_money
         states_sell = []
         states_buy = []
@@ -487,8 +463,10 @@ class Agent:
 
 # In[78]:
 
+num_days = 30
+close, names = load_data("dataset/train/",num_days)
 
-model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
+model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = len(names))
 agent = Agent(
     model = model,
     money = 10000,
@@ -497,7 +475,8 @@ agent = Agent(
     limit = 5,
     close = close,
     window_size = window_size,
-    num_stocks = num_stocks,
+    num_stocks = len(names),
+    num_days = num_days,
     skip = 1,
 )
 
