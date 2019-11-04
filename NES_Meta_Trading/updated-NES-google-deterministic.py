@@ -12,7 +12,7 @@ import pandas as pd
 sns.set()
 
 import os
-os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 
 # In[58]:
 
@@ -162,7 +162,6 @@ def softmax(x):
 
 def act(model, sequence):
     decision = model.predict(np.array(sequence))
-    print(softmax(decision))
     return softmax(decision)
 
 def buy_stock(portfolio, close_s, money, inventory, limit, t):
@@ -325,7 +324,6 @@ class Agent:
 
     def act(self, sequence):
         decision = self.model.predict(np.array(sequence))
-        print(softmax(decision))
         return softmax(decision)
 
     def buy_stock(portfolio, close_s, money, inventory, limit, t):
@@ -375,25 +373,27 @@ class Agent:
 
         self.model.weights = weights
 
-        cur_state = get_state(self.close, 0, self.window_size + 1, self.num_days, self.num_stocks)
         # weight = model
         initial_money = self.initial_money
         starting_money = initial_money
         close_s = self.close.reshape(self.num_stocks,int(len(self.close)/self.num_stocks))
 
+        # Split the data into either train or test dataset
         if split == "train":
-            close_s = close_s[:,0:int(len(close_s[0])*.7)]
-            num_days = int(self.num_days*0.7)
+            close_s = close_s[:,0:round(len(close_s[0])*.7)]
+            num_days = round(self.num_days*0.7)
         if split == "test":
-            close_s = close_s[:,int(len(close_s[0])*.7):len(close_s[0])]
-            num_days = int(self.num_days*0.3)
+            close_s = close_s[:,round(len(close_s[0])*.7):len(close_s[0])]
+            num_days = round(self.num_days*0.3)
 
-        close = close_s.flatten()
+        close = close_s.flatten() # Use the split data for close
 
         # Initialize a dictionary to keep track of which stocks we can buy
         keys = range(self.num_stocks)
         cur_inventory = {key: 0 for key in keys}
 
+
+        cur_state = get_state(close, 0, self.window_size + 1, num_days, self.num_stocks)
 
         for t in range(0, len(close_s[0]) - 1, self.skip):
 
@@ -417,30 +417,36 @@ class Agent:
     def fit(self, iterations, checkpoint):
         self.es.train(iterations, print_every = checkpoint)
 
-    def buy(self):
+    def buy(self, split):
 
-        # if split == "train":
-        #     close = self.close[0:int(len(self.close)*.7)]
-        # if split == "test":
-        #     close = self.close[int(len(self.close)*.7):-1]
-
-        cur_state = get_state(close, 0, self.window_size + 1, self.num_days, self.num_stocks)
         weight = self.model
         initial_money = self.initial_money
         starting_money = initial_money
-        close_s = close.reshape(self.num_stocks,int(len(close)/self.num_stocks))
+        close_s = self.close.reshape(self.num_stocks,round(len(self.close)/self.num_stocks))
         skip = 1
+
+        # Split the data into either train or test dataset
+        if split == "train":
+            close_s = close_s[:,0:round(len(close_s[0])*.7)]
+            num_days = round(self.num_days*0.7)
+        if split == "test":
+            close_s = close_s[:,round(len(close_s[0])*.7):len(close_s[0])]
+            num_days = round(self.num_days*0.3)
+
+        close = close_s.flatten() # Use the split data for close
 
         # Initialize a dictionary to keep track of which stocks we can buy
         keys = range(self.num_stocks)
         cur_inventory = {key: 0 for key in keys}
+
+        cur_state = get_state(close, 0, self.window_size + 1, num_days, self.num_stocks)
 
         inv = []
 
         for t in range(0, len(close_s[0]) - 1, self.skip):
 
             portfolio = self.act(cur_state)
-            next_state = get_state(close, t + 1, self.window_size + 1, self.num_days, self.num_stocks).reshape(self.num_stocks,self.window_size)
+            next_state = get_state(close, t + 1, self.window_size + 1, num_days, self.num_stocks).reshape(self.num_stocks,self.window_size)
 
             next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
 
@@ -485,6 +491,8 @@ class Agent:
 
 # In[78]:
 
+int(90*0.3)
+round(90*0.7)
 num_days = 90
 close, names = load_data("dataset/train/",num_days)
 print(names)
@@ -505,11 +513,11 @@ agent = Agent(
 # In[79]:
 
 
-agent.fit(iterations = 5, checkpoint = 10)
+agent.fit(iterations = 30, checkpoint = 10)
 
 
 
 # In[80]:
 
 
-agent.buy()
+agent.buy(split="test")
