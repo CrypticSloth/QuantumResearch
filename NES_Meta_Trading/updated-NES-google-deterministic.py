@@ -472,6 +472,7 @@ class Agent:
             inv_f.append(np.array(inv_d)[:,i])
         inv_f = np.array(inv_f)
 
+        print("Inventory at every timestep: \n ",inv)
         print(
             '\ntotal gained %f, total investment %f %%'
             % (initial_money - starting_money, rho1)
@@ -491,9 +492,7 @@ class Agent:
 
 # In[78]:
 
-int(90*0.3)
-round(90*0.7)
-num_days = 90
+num_days = 200
 close, names = load_data("dataset/train/",num_days)
 print(names)
 
@@ -513,7 +512,7 @@ agent = Agent(
 # In[79]:
 
 
-agent.fit(iterations = 30, checkpoint = 10)
+agent.fit(iterations = 500, checkpoint = 10)
 
 
 
