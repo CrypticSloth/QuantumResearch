@@ -12,7 +12,7 @@ import pandas as pd
 sns.set()
 
 import os
-os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
 
 # In[58]:
 
@@ -103,7 +103,7 @@ class Deep_Evolution_Strategy:
                 weights_population = self._get_weight_from_population(
                     self.weights, population[k]
                 )
-                rewards[k] = self.reward_function(weights_population)
+                rewards[k] = self.reward_function(weights_population, split = "train")
             rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001) # Normalized the rewards here. Do we need to normalize if they are log returns?
             for index, w in enumerate(self.weights):
                 A = np.array([p[index] for p in population])
@@ -116,7 +116,7 @@ class Deep_Evolution_Strategy:
             if (i + 1) % print_every == 0:
                 print(
                     'iter %d. reward: %f'
-                    % (i + 1, self.reward_function(self.weights, return_reward = True))
+                    % (i + 1, self.reward_function(self.weights, return_reward = True, split = "train"))
                 )
         print('time taken to train:', time.time() - lasttime, 'seconds')
 
@@ -162,6 +162,7 @@ def softmax(x):
 
 def act(model, sequence):
     decision = model.predict(np.array(sequence))
+    print(softmax(decision))
     return softmax(decision)
 
 def buy_stock(portfolio, close_s, money, inventory, limit, t):
@@ -222,6 +223,16 @@ skip = 1
 keys = range(num_stocks)
 cur_inventory = {key: 0 for key in keys}
 limit = 5
+
+split = "train"
+if split == "train":
+    t = close[0:int(len(close)*.7)] # This is a list of list of stock data so this doesnt work
+if split == "test":
+    t = close[int(len(close)*.7):-1]
+
+close_s
+close_s[:,0:int(len(close_s[0])*.7)]
+close_s[:,int(len(close_s[0])*.7):len(close_s[0])]
 
 for t in range(0, len(close_s[0]) - 1, skip):
 
@@ -314,6 +325,7 @@ class Agent:
 
     def act(self, sequence):
         decision = self.model.predict(np.array(sequence))
+        print(softmax(decision))
         return softmax(decision)
 
     def buy_stock(portfolio, close_s, money, inventory, limit, t):
@@ -349,7 +361,7 @@ class Agent:
 
         return inventory, cash
 
-    def get_reward(self, weights, return_reward=False):
+    def get_reward(self, weights, return_reward=False, split = "train"):
         '''
             Reward function.
 
@@ -358,7 +370,7 @@ class Agent:
                 p1 = initial_money
                 p0 = starting_money
 
-            We could add cost as well to this in the future.
+            We could add cost of trading stocks as well to this in the future.
         '''
 
         self.model.weights = weights
@@ -369,14 +381,24 @@ class Agent:
         starting_money = initial_money
         close_s = self.close.reshape(self.num_stocks,int(len(self.close)/self.num_stocks))
 
+        if split == "train":
+            close_s = close_s[:,0:int(len(close_s[0])*.7)]
+            num_days = int(self.num_days*0.7)
+        if split == "test":
+            close_s = close_s[:,int(len(close_s[0])*.7):len(close_s[0])]
+            num_days = int(self.num_days*0.3)
+
+        close = close_s.flatten()
+
         # Initialize a dictionary to keep track of which stocks we can buy
         keys = range(self.num_stocks)
         cur_inventory = {key: 0 for key in keys}
 
+
         for t in range(0, len(close_s[0]) - 1, self.skip):
 
             portfolio = self.act(cur_state)
-            next_state = get_state(self.close, t + 1, self.window_size + 1, self.num_days, self.num_stocks).reshape(self.num_stocks,self.window_size)
+            next_state = get_state(close, t + 1, self.window_size + 1, num_days, self.num_stocks).reshape(self.num_stocks,self.window_size)
 
             next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
 
@@ -396,11 +418,17 @@ class Agent:
         self.es.train(iterations, print_every = checkpoint)
 
     def buy(self):
-        cur_state = get_state(self.close, 0, self.window_size + 1, self.num_days, self.num_stocks)
+
+        # if split == "train":
+        #     close = self.close[0:int(len(self.close)*.7)]
+        # if split == "test":
+        #     close = self.close[int(len(self.close)*.7):-1]
+
+        cur_state = get_state(close, 0, self.window_size + 1, self.num_days, self.num_stocks)
         weight = self.model
         initial_money = self.initial_money
         starting_money = initial_money
-        close_s = self.close.reshape(self.num_stocks,int(len(self.close)/self.num_stocks))
+        close_s = close.reshape(self.num_stocks,int(len(close)/self.num_stocks))
         skip = 1
 
         # Initialize a dictionary to keep track of which stocks we can buy
@@ -412,7 +440,7 @@ class Agent:
         for t in range(0, len(close_s[0]) - 1, self.skip):
 
             portfolio = self.act(cur_state)
-            next_state = get_state(self.close, t + 1, self.window_size + 1, self.num_days, self.num_stocks).reshape(self.num_stocks,self.window_size)
+            next_state = get_state(close, t + 1, self.window_size + 1, self.num_days, self.num_stocks).reshape(self.num_stocks,self.window_size)
 
             next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
 
@@ -477,7 +505,7 @@ agent = Agent(
 # In[79]:
 
 
-agent.fit(iterations = 500, checkpoint = 10)
+agent.fit(iterations = 5, checkpoint = 10)
 
 
 
