@@ -153,6 +153,52 @@ class Model:
     def set_weights(self, weights):
         self.weights = weights
 
+# %%
+
+class QuantumModel:
+    def __init__(self, input_size, layer_size, output_size):
+        self.weights = [
+            np.random.randn(input_size, layer_size),
+            np.random.randn(layer_size, layer_size),
+            np.random.randn(layer_size,output_size), # This will have the softmax applied to it...
+            np.random.randn(1, layer_size), # Bias layer for our first feed-forward
+        ]
+
+    def layer(v):
+        # Matrix multiplication of input layer
+        qml.Rotation(v[0], wires=0)
+        qml.Squeezing(v[1], 0.0, wires=0)
+        qml.Rotation(v[2], wires=0)
+
+        # Bias
+        qml.Displacement(v[3], 0.0, wires=0)
+
+        # Element-wise nonlinear transformation
+        qml.Kerr(v[4], wires=0)
+
+    @qml.qnode(dev)
+    def quantum_neural_net(var, x=None):
+        # Encode input x into quantum state
+        qml.Displacement(x, 0.0, wires=0)
+
+        # "layer" subcircuits
+        for v in var: # Do all layers need to be the same length?
+            layer(v)
+
+        return qml.expval(qml.X(0))
+
+    def predict(self, inputs):
+        '''
+         This will need to output the column of 1,output_size that will have the softmax applied to it
+         '''
+
+        return quantum_neural_net(self.weights, inputs)
+
+    def get_weights(self):
+        return self.weights
+
+    def set_weights(self, weights):
+        self.weights = weights
 # In[66]:
 
 def softmax(x):
