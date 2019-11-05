@@ -248,7 +248,6 @@ class QuantumBSModel:
         self.output_size = output_size
         self.weights = 0.05 * np.random.randn(self.num_layers, 50)
 
-<<<<<<< HEAD
     def layer(self, w):
         '''
             For each weight (w[i]) apply the quantum gates to it.
@@ -342,101 +341,6 @@ class QuantumBSModel:
         preds = np.array([self.quantum_neural_net(self.weights, x=x) for x in inputs.T])
 
         return [np.mean(p) for p in preds.T]
-=======
-        def layer(self, w):
-            '''
-                For each weight (w[i]) apply the quantum gates to it.
-
-                Saves the updated weights to the quantum device.
-
-                w: a list of scalar weights (of length 5)
-            '''
-
-            qml.Displacement(w[0], 0.0, wires=0)
-            qml.Displacement(w[1], 0.0, wires=1)
-            qml.Displacement(w[2], 0.0, wires=2)
-            qml.Displacement(w[3], 0.0, wires=3)
-
-            qml.Displacement(w[4], w[5], wires=0)
-            qml.Displacement(w[6], w[7], wires=1)
-            qml.Displacement(w[8], w[9], wires=2)
-            qml.Displacement(w[10], w[11], wires=3)
-
-            qml.Squeezing(w[12], w[13], wires=0)
-            qml.Squeezing(w[14], w[15], wires=1)
-            qml.Squeezing(w[16], w[17], wires=2)
-            qml.Squeezing(w[18], w[19], wires=3)
-
-            qml.Kerr(w[20], wires=0)
-            qml.Kerr(w[21], wires=1)
-            qml.Kerr(w[22], wires=2)
-            qml.Kerr(w[23], wires=3)
-
-            qml.Beamsplitter(w[24],0, wires=[0,1])
-            qml.Beamsplitter(0,0, wires=[0,1])
-            qml.Beamsplitter(w[25],0, wires=[1,2])
-            qml.Beamsplitter(0,0, wires=[1,2])
-            qml.Beamsplitter(w[26],0, wires=[2,3])
-            qml.Beamsplitter(0,0, wires=[2,3])
-
-            qml.Displacement(w[27], w[28], wires=0)
-            qml.Displacement(w[29], w[30], wires=1)
-            qml.Displacement(w[31], w[32], wires=2)
-            qml.Displacement(w[33], w[34], wires=3)
-
-            qml.Squeezing(w[35], w[36], wires=0)
-            qml.Squeezing(w[37], w[38], wires=1)
-            qml.Squeezing(w[39], w[40], wires=2)
-            qml.Squeezing(w[41], w[42], wires=3)
-
-            qml.Kerr(w[43], wires=0)
-            qml.Kerr(w[44], wires=1)
-            qml.Kerr(w[45], wires=2)
-            qml.Kerr(w[46], wires=3)
-
-            qml.Beamsplitter(w[47],0, wires=[0,1])
-            qml.Beamsplitter(0,0, wires=[0,1])
-            qml.Beamsplitter(w[48],0, wires=[1,2])
-            qml.Beamsplitter(0,0, wires=[1,2])
-            qml.Beamsplitter(w[49],0, wires=[2,3])
-            qml.Beamsplitter(0,0, wires=[2,3])
-
-
-        @qml.qnode(dev)
-        def quantum_neural_net(self, weights, x=None):
-            '''
-                For each layer, apply the inputs to the gates to update the weights
-
-                weights: list of lists of scalar weights (of length 5)
-                x: list of stock closing values for 5 stocks
-            '''
-            # Encode input x into quantum state
-            qml.Displacement(x[0], 0.0, wires=0)
-            qml.Displacement(x[1], 0.0, wires=1)
-            qml.Displacement(x[2], 0.0, wires=2)
-            qml.Displacement(x[3], 0.0, wires=3)
-            # qml.Displacement(x[4], 0.0, wires=4)
-
-            # "layer" subcircuits
-            for w in weights:
-                self.layer(w)
-
-            return [qml.expval(qml.X(0)),
-                    qml.expval(qml.X(1)),
-                    qml.expval(qml.X(2)),
-                    qml.expval(qml.X(3))]
-                    # qml.expval(qml.X(4))]
-
-        def predict(self, weights, inputs):
-            '''
-                Loop through each of the training data and apply it to the quantum network to get a prediction for each value.
-
-                Will need to somehow make the QNN shape the values to output 5 values for the softmax function. Not sure how to do this since the network only updates with scalar values and the output is the size of the number of inputs.
-            '''
-            preds = np.array([self.quantum_neural_net(self.weights, x=x) for x in inputs.T])
-
-            return [np.mean(p) for p in preds.T]
->>>>>>> 925217914f3f37f91a8ba1bcee4337ac123927be
 
 
 # num_layers = 4 # 4-6 number of layers
