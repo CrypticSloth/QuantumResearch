@@ -3,8 +3,8 @@
 
 # In[2]:
 
-
-import numpy as np
+import pennylane as qml
+from pennylane import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import math
@@ -12,7 +12,7 @@ import pandas as pd
 sns.set()
 
 import os
-os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
 
 # In[58]:
 
@@ -156,15 +156,19 @@ class Model:
 # %%
 
 class QuantumModel:
-    def __init__(self, input_size, layer_size, output_size):
-        self.weights = [
-            np.random.randn(input_size, layer_size),
-            np.random.randn(layer_size, layer_size),
-            np.random.randn(layer_size,output_size), # This will have the softmax applied to it...
-            np.random.randn(1, layer_size), # Bias layer for our first feed-forward
-        ]
+    def __init__(self, num_layers):
+        self.weights = 0.05 * np.random.randn(num_layers, 5)
 
-    def layer(v):
+    dev = qml.device("strawberryfields.fock", wires=1, cutoff_dim=10)
+
+    def layer(self, v):
+        '''
+            For each weight (v[i]) apply the quantum gates to it.
+
+            Saves the updated weights to the quantum device.
+
+            v: a list of scalar weights (of length 5)
+        '''
         # Matrix multiplication of input layer
         qml.Rotation(v[0], wires=0)
         qml.Squeezing(v[1], 0.0, wires=0)
@@ -177,28 +181,37 @@ class QuantumModel:
         qml.Kerr(v[4], wires=0)
 
     @qml.qnode(dev)
-    def quantum_neural_net(var, x=None):
+    def quantum_neural_net(self, var, x=None):
+        '''
+            For each layer, apply the inputs to the gates to update the weights
+
+            var: list of lists of scalar weights (of length 5)
+            x: scalar value, the input training data
+        '''
         # Encode input x into quantum state
         qml.Displacement(x, 0.0, wires=0)
 
         # "layer" subcircuits
-        for v in var: # Do all layers need to be the same length?
-            layer(v)
+        for v in var:
+            self.layer(v)
 
         return qml.expval(qml.X(0))
 
     def predict(self, inputs):
         '''
-         This will need to output the column of 1,output_size that will have the softmax applied to it
-         '''
+            Loop through each of the training data and apply it to the quantum network to get a prediction for each value.
 
-        return quantum_neural_net(self.weights, inputs)
+            Will need to somehow make the QNN shape the values to output 5 values for the softmax function. Not sure how to do this since the network only updates with scalar values and the output is the size of the number of inputs. 
+        '''
+        preds = [self.quantum_neural_net(self.weights, x=x) for x in inputs]
+        return preds
 
     def get_weights(self):
         return self.weights
 
     def set_weights(self, weights):
         self.weights = weights
+
 # In[66]:
 
 def softmax(x):
@@ -253,9 +266,17 @@ def stock_value(inventory, money, close_s, t):
 # Testing one iteration of the new reward function
 # This assumes we can purchase partial stocks and has no limits
 window_size = 9
-model = Model(window_size*num_stocks, 500, 3)
+# model = Model(window_size*num_stocks, 500, 3)
+model = QuantumModel(num_layers=4)
 
 cur_state = get_state(close, 0, window_size + 1, num_days, num_stocks)
+
+np.shape(cur_state)
+np.array(cur_state[0])
+act(model, np.array([0.,0.,0.,0.]))
+
+model.predict([0,1,2,3,4])
+
 weight = model
 initial_money = 10000
 starting_money = initial_money
@@ -275,9 +296,9 @@ if split == "train":
 if split == "test":
     t = close[int(len(close)*.7):-1]
 
-close_s
-close_s[:,0:int(len(close_s[0])*.7)]
-close_s[:,int(len(close_s[0])*.7):len(close_s[0])]
+# close_s
+# close_s[:,0:int(len(close_s[0])*.7)]
+# close_s[:,int(len(close_s[0])*.7):len(close_s[0])]
 
 for t in range(0, len(close_s[0]) - 1, skip):
 
