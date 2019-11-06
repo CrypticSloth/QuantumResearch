@@ -12,7 +12,7 @@ import pandas as pd
 sns.set()
 
 import os
-os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
 
 # In[58]:
 
@@ -161,9 +161,6 @@ class QuantumModel:
         self.num_layers = num_layers
         self.output_size = output_size
         self.weights = 0.05 * np.random.randn(self.num_layers, 25)
-
-    # NOTE: 5 wires gives a memory error so 4 seems to be the max
-    dev = qml.device("strawberryfields.fock", wires=output_size, cutoff_dim=10)
 
     def layer(self, w):
         '''
@@ -332,12 +329,13 @@ class QuantumBSModel:
                 qml.expval(qml.X(3))]
                 # qml.expval(qml.X(4))]
 
-    def predict(self, weights, inputs):
+    def predict(self, inputs):
         '''
             Loop through each of the training data and apply it to the quantum network to get a prediction for each value.
 
             Will need to somehow make the QNN shape the values to output 5 values for the softmax function. Not sure how to do this since the network only updates with scalar values and the output is the size of the number of inputs.
         '''
+
         preds = np.array([self.quantum_neural_net(self.weights, x=x) for x in inputs.T])
 
         return [np.mean(p) for p in preds.T]
@@ -446,6 +444,8 @@ num_stocks = len(names) # This will need to be used to calculate the iterations 
 num_stocks
 np.shape(close)
 
+# NOTE: 5 wires gives a memory error so 4 seems to be the max
+dev = qml.device("strawberryfields.fock", wires=num_stocks, cutoff_dim=10)
 model = QuantumBSModel(num_layers = 4, output_size = num_stocks)
 
 cur_state = get_state(close, 10, window_size + 1, num_days, num_stocks)
@@ -455,7 +455,7 @@ cur_state = cur_state.reshape(num_stocks, window_size)
 np.shape(cur_state)
 
 dev.reset()
-preds = model.predict(weights, cur_state) # This is all we need..
+preds = model.predict(cur_state) # This is all we need..
 preds
 
 # softmax(np.array([preds]))
