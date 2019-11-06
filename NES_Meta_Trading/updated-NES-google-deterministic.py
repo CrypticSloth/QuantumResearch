@@ -229,7 +229,7 @@ class QuantumModel:
                 qml.expval(qml.X(3))]
                 # qml.expval(qml.X(4))]
 
-    def predict(self, weights, inputs):
+    def predict(self, inputs):
         '''
             Loop through each of the training data and apply it to the quantum network to get a prediction for each value.
 
@@ -446,7 +446,7 @@ np.shape(close)
 
 # NOTE: 5 wires gives a memory error so 4 seems to be the max
 dev = qml.device("strawberryfields.fock", wires=num_stocks, cutoff_dim=10)
-model = QuantumBSModel(num_layers = 4, output_size = num_stocks)
+model = QuantumModel(num_layers = 4, output_size = num_stocks)
 
 cur_state = get_state(close, 10, window_size + 1, num_days, num_stocks)
 # act(model, np.array([0.,0.,0.,0.]))
