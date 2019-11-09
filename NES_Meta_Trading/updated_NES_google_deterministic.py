@@ -330,7 +330,7 @@ class Agent:
         decision = self.model.predict(np.array(sequence))
         return softmax(decision)
 
-    def buy_stock(portfolio, close_s, money, inventory, limit, t):
+    def buy_stock(self, portfolio, close_s, money, inventory, limit, t):
         """
             Function that takes in portfolio weights (percentage of each stock in the entire portfolio),
             the current stock prices (close price) and the money we currently have
@@ -404,7 +404,7 @@ class Agent:
             portfolio = self.act(cur_state)
             next_state = get_state(close, t + 1, self.window_size + 1, num_days, self.num_stocks).reshape(self.num_stocks,self.window_size)
 
-            next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
+            next_inventory, initial_money = self.buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
 
             cur_state = next_state.flatten()
             cur_inventory = next_inventory
@@ -452,7 +452,7 @@ class Agent:
             portfolio = self.act(cur_state)
             next_state = get_state(close, t + 1, self.window_size + 1, num_days, self.num_stocks).reshape(self.num_stocks,self.window_size)
 
-            next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
+            next_inventory, initial_money = self.buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
 
             # record the inventory
             inv_list = []
