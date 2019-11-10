@@ -56,28 +56,28 @@ def layer(w):
     # qml.Rotation(w[3], wires=3)
     # qml.Rotation(w[4], wires=4)
 
-    qml.Squeezing(w[5], 0.0, wires=0)
-    qml.Squeezing(w[6], 0.0, wires=1)
+    qml.Squeezing(w[2], 0.0, wires=0)
+    qml.Squeezing(w[3], 0.0, wires=1)
     # qml.Squeezing(w[7], 0.0, wires=2)
     # qml.Squeezing(w[8], 0.0, wires=3)
     # qml.Squeezing(w[9], 0.0, wires=4)
 
-    qml.Rotation(w[10], wires=0)
-    qml.Rotation(w[11], wires=1)
+    qml.Rotation(w[4], wires=0)
+    qml.Rotation(w[5], wires=1)
     # qml.Rotation(w[12], wires=2)
     # qml.Rotation(w[13], wires=3)
     # qml.Rotation(w[14], wires=4)
 
     # Bias
-    qml.Displacement(w[15], 0.0, wires=0)
-    qml.Displacement(w[16], 0.0, wires=1)
+    qml.Displacement(w[6], 0.0, wires=0)
+    qml.Displacement(w[7], 0.0, wires=1)
     # qml.Displacement(w[17], 0.0, wires=2)
     # qml.Displacement(w[18], 0.0, wires=3)
     # qml.Displacement(w[19], 0.0, wires=4)
 
     # Element-wise nonlinear transformation
-    qml.Kerr(w[20], wires=0)
-    qml.Kerr(w[21], wires=1)
+    qml.Kerr(w[8], wires=0)
+    qml.Kerr(w[9], wires=1)
     # qml.Kerr(w[22], wires=2)
     # qml.Kerr(w[23], wires=3)
     # qml.Kerr(w[24], wires=4)
@@ -220,6 +220,7 @@ class Deep_Evolution_Strategy:
             for k in range(self.population_size):
                 x = []
                 for w in weights_g:
+                    # print("w: ", np.shape(w))
                     x.append(np.random.randn(*w.shape))
                 population.append(x)
             for k in range(self.population_size):
@@ -227,9 +228,10 @@ class Deep_Evolution_Strategy:
                     weights_g, population[k]
                 )
                 rewards[k] = self.reward_function(weights_population, split = "train")
-            rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001) # Normalized the rewards here. Do we need to normalize if they are log returns?
+            rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001) # Normalized the rewards
             for index, w in enumerate(weights_g):
                 A = np.array([p[index] for p in population])
+                print(weights_g[index])
                 weights_g[index] = (
                     w
                     + self.learning_rate
@@ -361,7 +363,7 @@ class Agent:
         decision = predict(np.array(sequence).reshape(self.num_stocks,self.window_size))
         # print(decision)
         # print(self.softmax([decision]))
-        return self.softmax([decision])
+        return self.softmax(np.array([decision]) * 100)
 
     def buy_stock(self, portfolio, close_s, money, inventory, limit, t):
         """
@@ -569,10 +571,10 @@ if __name__ == '__main__':
         return e_x / (e_x.sum() + 0.00001)
 
     num_layers = 4
-    weights_g = 0.05 * np.random.randn(num_layers, 63)
-    #
+    weights_g = 0.05 * np.random.randn(num_layers, 10)
     np.array(predict(weights_g)) * 10
-    softmax(np.array(predict(weights_g)))
+    softmax(np.array(predict(weights_g)) * 100)
+
 
     # model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = len(names))
     agent = Agent(
