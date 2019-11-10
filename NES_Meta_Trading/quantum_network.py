@@ -187,7 +187,7 @@ def predict(inputs, bs=False):
 
         Will need to somehow make the QNN shape the values to output 5 values for the softmax function. Not sure how to do this since the network only updates with scalar values and the output is the size of the number of inputs.
     '''
-    preds = np.array([quantum_neural_net(weights, x=x ,bs=bs) for x in inputs.T])
+    preds = np.array([quantum_neural_net(weights_g, x=x ,bs=bs) for x in inputs.T])
 
     return [np.mean(p) for p in preds.T]
 
@@ -210,7 +210,7 @@ class Deep_Evolution_Strategy:
         return weights_population
 
     def get_weights(self):
-        return weights
+        return weights_g
 
     def train(self, epoch = 100, print_every = 1):
         lasttime = time.time()
@@ -219,18 +219,18 @@ class Deep_Evolution_Strategy:
             rewards = np.zeros(self.population_size)
             for k in range(self.population_size):
                 x = []
-                for w in weights:
+                for w in weights_g:
                     x.append(np.random.randn(*w.shape))
                 population.append(x)
             for k in range(self.population_size):
                 weights_population = self._get_weight_from_population(
-                    weights, population[k]
+                    weights_g, population[k]
                 )
                 rewards[k] = self.reward_function(weights_population, split = "train")
             rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001) # Normalized the rewards here. Do we need to normalize if they are log returns?
-            for index, w in enumerate(weights):
+            for index, w in enumerate(weights_g):
                 A = np.array([p[index] for p in population])
-                weights[index] = (
+                weights_g[index] = (
                     w
                     + self.learning_rate
                     / (self.population_size * self.sigma)
@@ -239,7 +239,7 @@ class Deep_Evolution_Strategy:
             if (i + 1) % print_every == 0:
                 print(
                     'iter %d. reward: %f'
-                    % (i + 1, self.reward_function(weights, return_reward = True, split = "train"))
+                    % (i + 1, self.reward_function(weights_g, return_reward = True, split = "train"))
                 )
         print('time taken to train:', time.time() - lasttime, 'seconds')
 
@@ -359,6 +359,8 @@ class Agent:
 
     def act(self, sequence):
         decision = predict(np.array(sequence).reshape(self.num_stocks,self.window_size))
+        # print(decision)
+        # print(self.softmax([decision]))
         return self.softmax([decision])
 
     def buy_stock(self, portfolio, close_s, money, inventory, limit, t):
@@ -406,7 +408,7 @@ class Agent:
             We could add cost of trading stocks as well to this in the future.
         '''
 
-        weights = weights
+        weights_g = weights
 
         # weight = model
         initial_money = self.initial_money
@@ -561,8 +563,16 @@ if __name__ == '__main__':
 
     # %%
 
+    def softmax(x):
+        """Compute softmax values for each sets of scores in x."""
+        e_x = np.exp(x - np.max(x))
+        return e_x / (e_x.sum() + 0.00001)
+
     num_layers = 4
-    weights = 0.05 * np.random.randn(num_layers, 63)
+    weights_g = 0.05 * np.random.randn(num_layers, 63)
+    #
+    np.array(predict(weights_g)) * 10
+    softmax(np.array(predict(weights_g)))
 
     # model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = len(names))
     agent = Agent(
@@ -578,7 +588,8 @@ if __name__ == '__main__':
 
     # In[79]:
 
-    agent.fit(iterations = 10, checkpoint = 2)
+    agent.fit(iterations = 4, checkpoint = 1)
+
 
      # In[80]:
 
