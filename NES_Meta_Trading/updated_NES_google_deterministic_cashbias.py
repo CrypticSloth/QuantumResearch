@@ -129,7 +129,7 @@ class Model:
             np.random.randn(layer_size, layer_size),
             # np.random.randn(layer_size, output_size), # decision, output we need to do (Do nothing = 0; Buy = 1; sell = 2)
             # np.random.randn(layer_size, 1), # buy, how many units quantity we need to buy
-            np.random.randn(layer_size,output_size), # This will have the softmax applied to it...
+            np.random.randn(layer_size,output_size + 1), # This will have the softmax applied to it...
             np.random.randn(1, layer_size), # Bias layer for our first feed-forward
         ]
 
@@ -330,9 +330,9 @@ class Agent:
         decision = self.model.predict(np.array(sequence))
         return self.softmax(decision)
 
-    def buy_stock(self, portfolio, close_s, money, inventory, limit, t):
+    def buy_stock(self, portfolio, close_s, inventory, limit, t):
         """
-            Function that takes in portfolio weights (percentage of each stock in the entire portfolio),
+            Function that takes in portfolio decision (percentage of each stock in the entire portfolio),
             the current stock prices (close price) and the money we currently have
             and calculates the maximum number of stocks we can buy with the weights given in the portfolio.
 
@@ -344,9 +344,10 @@ class Agent:
         """
 
         c = 0
-        cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money # reset our inventory into cash
 
-        portfolio_money = portfolio[0] * cash
+        cash = np.sum([close_s[i][t] * inventory[i+1] for i in range(len(close_s))]) + inventory[0] # reset our inventory into cash (keeping current cash separate)
+
+        portfolio_money = portfolio[0][1:] * cash # portfolio[0] because portfolio is an array of array of size 1
 
         p = []
         for m in portfolio_money:
@@ -360,7 +361,9 @@ class Agent:
             cash -= (inventory[c] * close_s[c][t])
             c += 1
 
-        return inventory, cash
+        inventory[0] = cash # update the cash
+
+        return inventory
 
     def get_reward(self, weights, return_reward=False, split = "train"):
         '''
@@ -392,9 +395,9 @@ class Agent:
         close = close_s.flatten() # Use the split data for close
 
         # Initialize a dictionary to keep track of which stocks we can buy
-        keys = range(self.num_stocks)
+        keys = range(self.num_stocks + 1)  # Plus 1 to add the cash
         cur_inventory = {key: 0 for key in keys}
-
+        cur_inventory[0] = initial_money # Put the cash into the inventory
 
         cur_state = get_state(close, 0, self.window_size + 1, num_days, self.num_stocks)
 
@@ -403,13 +406,13 @@ class Agent:
             portfolio = self.act(cur_state)
             next_state = get_state(close, t + 1, self.window_size + 1, num_days, self.num_stocks).reshape(self.num_stocks,self.window_size)
 
-            next_inventory, initial_money = self.buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
+            next_inventory = self.buy_stock(portfolio, close_s, cur_inventory, self.limit, t)
 
             cur_state = next_state.flatten()
             cur_inventory = next_inventory
 
-        rho1 = (initial_money / starting_money - 1) * 100 # rate of returns
-        r1 = np.log((initial_money + 0.00001) / (starting_money + 0.00001)) # log rate of return (eq10)
+        rho1 = (cur_inventory[0] / starting_money - 1) * 100 # rate of returns
+        r1 = np.log((cur_inventory[0] + 0.00001) / (starting_money + 0.00001)) # log rate of return (eq10)
 
         if return_reward == True:
             return rho1
@@ -439,8 +442,9 @@ class Agent:
         close = close_s.flatten() # Use the split data for close
 
         # Initialize a dictionary to keep track of which stocks we can buy
-        keys = range(self.num_stocks)
+        keys = range(self.num_stocks + 1)  # Plus 1 to add the cash
         cur_inventory = {key: 0 for key in keys}
+        cur_inventory[0] = initial_money # Put the cash into the inventory
 
         cur_state = get_state(close, 0, self.window_size + 1, num_days, self.num_stocks)
 
@@ -451,18 +455,18 @@ class Agent:
             portfolio = self.act(cur_state)
             next_state = get_state(close, t + 1, self.window_size + 1, num_days, self.num_stocks).reshape(self.num_stocks,self.window_size)
 
-            next_inventory, initial_money = self.buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
+            next_inventory = self.buy_stock(portfolio, close_s, cur_inventory, self.limit, t)
 
             # record the inventory
             inv_list = []
             for key,value in next_inventory.items():
                 inv_list.append(value)
-            inv.append(inv_list)
+            inv.append(inv_list[1:])
 
             cur_state = next_state.flatten()
             cur_inventory = next_inventory
 
-        rho1 = (initial_money / starting_money - 1) * 100 # rate of returns
+        rho1 = (cur_inventory[0] / starting_money - 1) * 100 # rate of returns
 
         inv = np.array(inv)
         inv_d = []
@@ -478,7 +482,7 @@ class Agent:
         print("Inventory at every timestep: \n ",inv)
         print(
             '\ntotal gained %f, total investment %f %%'
-            % (initial_money - starting_money, rho1)
+            % (cur_inventory[0] - starting_money, rho1)
         )
         for i in range(len(close_s)):
             plt.figure(figsize = (20, 10))
@@ -516,7 +520,7 @@ if __name__ == '__main__':
 
     # In[79]:
 
-    agent.fit(iterations = 500, checkpoint = 10)
+    agent.fit(iterations = 100, checkpoint = 10)
 
     # In[80]:
 
