@@ -327,7 +327,10 @@ class Agent:
         return e_x / (e_x.sum(axis=1) + 0.00001)
 
     def act(self, sequence):
-        decision = self.model.predict(np.array(sequence))
+        decision = self.model.predict(np.array(sequence)) / 10000 # Unsure how this fixes the problem of always buying one stock... TODO: Investigate this
+        # print("Decision : ", decision)
+        # print("Softmax : ", self.softmax(decision))
+
         return self.softmax(decision)
 
     def buy_stock(self, portfolio, close_s, inventory, limit, t):
@@ -339,6 +342,8 @@ class Agent:
             Inventory is the dictionary containing how many stocks we own.
             Limit puts a maximum number of stock we can purchase
             t is the current time step
+
+            portfolio: list -> [[0.1, 0.3, 0.4, 0.0, 0.2]] where the first value is the amount of cash we are holding compared to our previous cash amount.
 
             TODO: add the cash in as a stock 'option' so the model has full information on how much money is left
         """
@@ -354,11 +359,11 @@ class Agent:
             num_stock = math.floor(m / (close_s[c][t] + 0.000001))
             p.append(close_s[c][t])
             if num_stock <= limit:
-                inventory[c] = num_stock
+                inventory[c+1] = num_stock
             else:
-                inventory[c] = limit
+                inventory[c+1] = limit
 
-            cash -= (inventory[c] * close_s[c][t])
+            cash -= (inventory[c+1] * close_s[c][t])
             c += 1
 
         inventory[0] = cash # update the cash
@@ -505,7 +510,7 @@ if __name__ == '__main__':
     close, names = load_data("dataset/train/",num_days)
     print(names)
 
-    model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = len(names))
+    model = Model(input_size = window_size*len(names), layer_size = 500, output_size = len(names))
     agent = Agent(
         model = model,
         money = 10000,
@@ -520,7 +525,7 @@ if __name__ == '__main__':
 
     # In[79]:
 
-    agent.fit(iterations = 100, checkpoint = 10)
+    agent.fit(iterations = 50, checkpoint = 10)
 
     # In[80]:
 
