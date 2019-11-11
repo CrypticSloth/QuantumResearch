@@ -346,6 +346,8 @@ class Agent:
             portfolio: list -> [[0.1, 0.3, 0.4, 0.0, 0.2]] where the first value is the amount of cash we are holding compared to our previous cash amount.
 
             TODO: add the cash in as a stock 'option' so the model has full information on how much money is left
+                Now, the thing that is holding it back is the limit
+                Now we want the 'limit' to not be artificial, but have the algorithm decide its limits via the portfolio of cash amount.
         """
 
         c = 0
@@ -505,6 +507,14 @@ class Agent:
 # In[78]:
 
 if __name__ == '__main__':
+
+    import argparse
+    parser = argparse.ArgumentParser(description='Train and test portfolio trainer')
+    parser.add_argument('--iterations', type=int, help='How many iterations to train the model.')
+    parser.add_argument('--checkpoint', type=int, help='How many iterations to print progress to console.')
+
+    args = parser.parse_args()
+
     window_size = 10
     num_days = 200
     close, names = load_data("dataset/train/",num_days)
@@ -525,7 +535,7 @@ if __name__ == '__main__':
 
     # In[79]:
 
-    agent.fit(iterations = 50, checkpoint = 10)
+    agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
 
     # In[80]:
 
