@@ -11,7 +11,7 @@ import pandas as pd
 sns.set()
 
 import os
-os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
 
 # In[58]:
 
@@ -350,27 +350,43 @@ class Agent:
                 Now we want the 'limit' to not be artificial, but have the algorithm decide its limits via the portfolio of cash amount.
         """
 
-        c = 0
+        if limit == None:
+            # If no limit is manually set, let the algorithm decide the percentage it will hold as cash asset.
+            total_asset_value = np.sum([close_s[i][t] * inventory[i+1] for i in range(len(close_s))]) + inventory[0]
 
-        cash = np.sum([close_s[i][t] * inventory[i+1] for i in range(len(close_s))]) + inventory[0] # reset our inventory into cash (keeping current cash separate)
+            portfolio_money = portfolio[0] * total_asset_value
+            # print(np.sum(portfolio_money))
 
-        portfolio_money = portfolio[0][1:] * cash # portfolio[0] because portfolio is an array of array of size 1
+            c = 0
+            for m in portfolio_money[1:]:
+                inventory[c+1] = m / close_s[c][t]
+                c += 1
 
-        p = []
-        for m in portfolio_money:
-            num_stock = math.floor(m / (close_s[c][t] + 0.000001))
-            p.append(close_s[c][t])
-            if num_stock <= limit:
-                inventory[c+1] = num_stock
-            else:
-                inventory[c+1] = limit
+            inventory[0] = portfolio_money[0]
 
-            cash -= (inventory[c+1] * close_s[c][t])
-            c += 1
+            return inventory
+        else:
+            c = 0
 
-        inventory[0] = cash # update the cash
+            cash = np.sum([close_s[i][t] * inventory[i+1] for i in range(len(close_s))]) + inventory[0] # reset our inventory into cash (keeping current cash separate)
 
-        return inventory
+            portfolio_money = portfolio[0][1:] * cash # portfolio[0] because portfolio is an array of array of size 1
+
+            p = []
+            for m in portfolio_money:
+                num_stock = math.floor(m / (close_s[c][t] + 0.000001))
+                p.append(close_s[c][t])
+                if num_stock <= limit:
+                    inventory[c+1] = num_stock
+                else:
+                    inventory[c+1] = limit
+
+                cash -= (inventory[c+1] * close_s[c][t])
+                c += 1
+
+            inventory[0] = cash # update the cash
+
+            return inventory
 
     def get_reward(self, weights, return_reward=False, split = "train"):
         '''
@@ -418,8 +434,14 @@ class Agent:
             cur_state = next_state.flatten()
             cur_inventory = next_inventory
 
-        rho1 = (cur_inventory[0] / starting_money - 1) * 100 # rate of returns
-        r1 = np.log((cur_inventory[0] + 0.00001) / (starting_money + 0.00001)) # log rate of return (eq10)
+        if self.limit == None:
+            total_asset_value = np.sum([close_s[i][-1] * cur_inventory[i+1] for i in range(len(close_s))]) + cur_inventory[0]
+            rho1 = (total_asset_value / starting_money - 1) * 100 # rate of returns
+            r1 = np.log((total_asset_value + 0.00001) / (starting_money + 0.00001)) # log rate of return (eq10)
+        else:
+            total_asset_value = np.sum([close_s[i][-1] * cur_inventory[i+1] for i in range(len(close_s))]) + cur_inventory[0]
+            rho1 = (total_asset_value / starting_money - 1) * 100 # rate of returns
+            r1 = np.log((total_asset_value + 0.00001) / (starting_money + 0.00001)) # log rate of return (eq10)
 
         if return_reward == True:
             return rho1
@@ -473,7 +495,8 @@ class Agent:
             cur_state = next_state.flatten()
             cur_inventory = next_inventory
 
-        rho1 = (cur_inventory[0] / starting_money - 1) * 100 # rate of returns
+        total_asset_value = np.sum([close_s[i][-1] * cur_inventory[i+1] for i in range(len(close_s))]) + cur_inventory[0]
+        rho1 = (total_asset_value / starting_money - 1) * 100 # rate of returns
 
         inv = np.array(inv)
         inv_d = []
@@ -486,10 +509,14 @@ class Agent:
             inv_f.append(np.array(inv_d)[:,i])
         inv_f = np.array(inv_f)
 
-        print("Inventory at every timestep: \n ",inv)
+        print("Inventory at every timestep: \n ")
+        for i in inv:
+            f = ['%.2f' % x for x in i]
+            print(str(f))
+
         print(
             '\ntotal gained %f, total investment %f %%'
-            % (cur_inventory[0] - starting_money, rho1)
+            % (total_asset_value - starting_money, rho1)
         )
         for i in range(len(close_s)):
             plt.figure(figsize = (20, 10))
@@ -524,7 +551,7 @@ if __name__ == '__main__':
     agent = Agent(
         model = model,
         money = 10000,
-        limit = 5,
+        limit = None,
         close = close,
         window_size = window_size,
         num_stocks = len(names),
@@ -535,7 +562,8 @@ if __name__ == '__main__':
 
     # In[79]:
 
-    agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
+    # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
+    agent.fit(iterations = 50, checkpoint = 10)
 
     # In[80]:
 
