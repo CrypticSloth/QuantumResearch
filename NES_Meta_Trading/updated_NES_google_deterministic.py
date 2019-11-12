@@ -463,7 +463,8 @@ class Agent:
             cur_state = next_state.flatten()
             cur_inventory = next_inventory
 
-        rho1 = (initial_money / starting_money - 1) * 100 # rate of returns
+        initial_money2 = np.sum([close_s[i][-1] * cur_inventory[i] for i in range(len(close_s))]) + initial_money
+        rho1 = (initial_money2 / starting_money - 1) * 100 # rate of returns
 
         inv = np.array(inv)
         inv_d = []
@@ -479,7 +480,7 @@ class Agent:
         print("Inventory at every timestep: \n ",inv)
         print(
             '\ntotal gained %f, total investment %f %%'
-            % (initial_money - starting_money, rho1)
+            % (initial_money2 - starting_money, rho1)
         )
         for i in range(len(close_s)):
             plt.figure(figsize = (20, 10))
