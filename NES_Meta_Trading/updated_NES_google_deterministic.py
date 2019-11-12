@@ -408,8 +408,9 @@ class Agent:
             cur_state = next_state
             cur_inventory = next_inventory
 
-        rho1 = (initial_money / starting_money - 1) * 100 # rate of returns
-        r1 = np.log((initial_money + 0.00001) / (starting_money + 0.00001)) # log rate of return (eq10)
+        initial_money2 = np.sum([close_s[i][-1] * cur_inventory[i] for i in range(len(close_s))]) + initial_money # Sell off all stocks to get total roi
+        rho1 = (initial_money2 / starting_money - 1) * 100 # rate of returns
+        r1 = np.log((initial_money2 + 0.00001) / (starting_money + 0.00001)) # log rate of return (eq10)
 
         if return_reward == True:
             return rho1
@@ -516,7 +517,7 @@ if __name__ == '__main__':
 
     # In[79]:
 
-    agent.fit(iterations = 50, checkpoint = 10)
+    agent.fit(iterations = 100, checkpoint = 10)
 
     # In[80]:
 
