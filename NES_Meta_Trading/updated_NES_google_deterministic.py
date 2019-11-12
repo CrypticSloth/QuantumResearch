@@ -11,7 +11,7 @@ import pandas as pd
 sns.set()
 
 import os
-os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
 
 # In[58]:
 
@@ -327,7 +327,7 @@ class Agent:
         return e_x / (e_x.sum(axis=1) + 0.00001)
 
     def act(self, sequence):
-        decision = self.model.predict(np.array(sequence))
+        decision = self.model.predict(np.array(sequence)) / 10000
         return self.softmax(decision)
 
     def buy_stock(self, portfolio, close_s, money, inventory, limit, t):
@@ -401,11 +401,11 @@ class Agent:
         for t in range(0, len(close_s[0]) - 1, self.skip):
 
             portfolio = self.act(cur_state)
-            next_state = get_state(close, t + 1, self.window_size + 1, num_days, self.num_stocks).reshape(self.num_stocks,self.window_size)
+            next_state = get_state(close, t + 1, self.window_size + 1, num_days, self.num_stocks)
 
             next_inventory, initial_money = self.buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
 
-            cur_state = next_state.flatten()
+            cur_state = next_state
             cur_inventory = next_inventory
 
         rho1 = (initial_money / starting_money - 1) * 100 # rate of returns
@@ -516,7 +516,7 @@ if __name__ == '__main__':
 
     # In[79]:
 
-    agent.fit(iterations = 500, checkpoint = 10)
+    agent.fit(iterations = 50, checkpoint = 10)
 
     # In[80]:
 
