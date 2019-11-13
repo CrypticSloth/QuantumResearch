@@ -11,7 +11,7 @@ import pandas as pd
 sns.set()
 
 import os
-os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 
 # In[58]:
 
@@ -563,7 +563,7 @@ if __name__ == '__main__':
     # In[79]:
 
     # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
-    agent.fit(iterations = 50, checkpoint = 10)
+    agent.fit(iterations = 1000, checkpoint = 10)
 
     # In[80]:
 
