@@ -11,7 +11,7 @@ import pandas as pd
 sns.set()
 
 import os
-os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
 
 # In[58]:
 
@@ -365,26 +365,28 @@ class Agent:
             inventory[0] = portfolio_money[0]
 
             return inventory
+
         else:
+
+            total_asset_value = np.sum([close_s[i][t] * inventory[i+1] for i in range(len(close_s))]) + inventory[0] # reset our inventory into cash (keeping current cash separate)
+
+            portfolio_money = portfolio[0] * total_asset_value # portfolio[0] because portfolio is an array of array of size 1
+
+            spending_money = total_asset_value - portfolio_money[0]
+
             c = 0
-
-            cash = np.sum([close_s[i][t] * inventory[i+1] for i in range(len(close_s))]) + inventory[0] # reset our inventory into cash (keeping current cash separate)
-
-            portfolio_money = portfolio[0][1:] * cash # portfolio[0] because portfolio is an array of array of size 1
-
-            p = []
-            for m in portfolio_money:
+            for m in portfolio_money[1:]:
                 num_stock = math.floor(m / (close_s[c][t] + 0.000001))
-                p.append(close_s[c][t])
+
                 if num_stock <= limit:
                     inventory[c+1] = num_stock
                 else:
                     inventory[c+1] = limit
 
-                cash -= (inventory[c+1] * close_s[c][t])
+                spending_money -= (inventory[c+1] * close_s[c][t])
                 c += 1
 
-            inventory[0] = cash # update the cash
+            inventory[0] = spending_money  # update the percentage
 
             return inventory
 
@@ -551,7 +553,7 @@ if __name__ == '__main__':
     agent = Agent(
         model = model,
         money = 10000,
-        limit = None,
+        limit = 5,
         close = close,
         window_size = window_size,
         num_stocks = len(names),
