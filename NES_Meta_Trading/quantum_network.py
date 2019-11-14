@@ -187,6 +187,7 @@ def predict(inputs, bs=False):
 
         Will need to somehow make the QNN shape the values to output 5 values for the softmax function. Not sure how to do this since the network only updates with scalar values and the output is the size of the number of inputs.
     '''
+    global weights_g
     preds = np.array([quantum_neural_net(weights_g, x=x ,bs=bs) for x in inputs.T])
 
     return [np.mean(p) for p in preds.T]
@@ -233,17 +234,17 @@ class Deep_Evolution_Strategy:
                 # print("P: ", self.weights)
                 rewards[k] = self.reward_function(weights_population, split = "train")
             rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001) # Normalized the rewards
-            print("R :", rewards)
+            # print("R :", rewards)
             for index, w in enumerate(self.weights):
                 A = np.array([p[index] for p in population])
-                print("1. :", self.weights[index])
+                # print("1. :", self.weights[index])
                 self.weights[index] = (
                     w
                     + self.learning_rate
                     / (self.population_size * self.sigma)
                     * np.dot(A.T, rewards).T# Our task is to make this meta by storing each gradient into a global gradient from the MAML paper
                 )
-                print("2. :", self.weights[index])
+                # print("2. :", self.weights[index])
             if (i + 1) % print_every == 0:
                 print(
                     'iter %d. reward: %f'
@@ -367,6 +368,7 @@ class Agent:
         e_x = np.exp(x - np.max(x))
         return e_x / (e_x.sum(axis=1) + 0.00001)
 
+    global predict
     def act(self, sequence):
         decision = predict(np.array(sequence).reshape(self.num_stocks,self.window_size))
         # print(decision)
@@ -419,9 +421,15 @@ class Agent:
         '''
 
         # This line is probably where the problem lies.
-        weights_g = weights # This needs to update the weights that act() sees...
 
-        # weight = model
+          
+            global weights_g
+            # print("WG1: ", weights_g)
+            # print("W: ", weights)
+            weights_g = weights # This needs to update the weights that act() sees...
+            # print("WG2: ", weights_g)
+            # weight = model
+
         initial_money = self.initial_money
         starting_money = initial_money
         close_s = self.close.reshape(self.num_stocks,int(len(self.close)/self.num_stocks))
@@ -563,10 +571,10 @@ if __name__ == '__main__':
     cur_state = get_state(close, 10, window_size + 1, num_days, num_stocks)
     # act(model, np.array([0.,0.,0.,0.]))
 
-    cur_state
-    cur_state = cur_state.reshape(num_stocks, window_size)
-    np.shape(cur_state)
-    cur_state
+    # cur_state
+    # cur_state = cur_state.reshape(num_stocks, window_size)
+    # np.shape(cur_state)
+    # cur_state
     # dev.reset()
     # preds = predict(cur_state, bs=True) # This is all we need..
     #
@@ -580,9 +588,11 @@ if __name__ == '__main__':
         return e_x / (e_x.sum() + 0.00001)
 
     num_layers = 4
+    global weights_g
     weights_g = 0.05 * np.random.randn(num_layers, 10)
-    np.array(predict(weights_g)) * 10
-    softmax(np.array(predict(weights_g)) * 100)
+    print(weights_g)
+    # np.array(predict(weights_g)) * 10
+    # softmax(np.array(predict(weights_g)) * 100)
 
 
     # model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = len(names))
@@ -600,8 +610,9 @@ if __name__ == '__main__':
 
     # In[79]:
 
-    agent.fit(iterations = 4, checkpoint = 1)
+    agent.fit(iterations = 25, checkpoint = 5)
 
+    print(weights_g)
 
      # In[80]:
 
