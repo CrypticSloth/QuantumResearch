@@ -195,8 +195,9 @@ def predict(inputs, bs=False):
 
 class Deep_Evolution_Strategy:
     def __init__(
-        self, reward_function, population_size, sigma, learning_rate
+        self, weights, reward_function, population_size, sigma, learning_rate
     ):
+        self.weights = weights
         self.reward_function = reward_function
         self.population_size = population_size
         self.sigma = sigma
@@ -210,7 +211,7 @@ class Deep_Evolution_Strategy:
         return weights_population
 
     def get_weights(self):
-        return weights_g
+        return self.weights
 
     def train(self, epoch = 100, print_every = 1):
         lasttime = time.time()
@@ -219,20 +220,20 @@ class Deep_Evolution_Strategy:
             rewards = np.zeros(self.population_size)
             for k in range(self.population_size):
                 x = []
-                for w in weights_g:
+                for w in self.weights:
                     # print("w: ", np.shape(w))
                     x.append(np.random.randn(*w.shape))
                 population.append(x)
             for k in range(self.population_size):
                 weights_population = self._get_weight_from_population(
-                    weights_g, population[k]
+                    self.weights, population[k]
                 )
                 rewards[k] = self.reward_function(weights_population, split = "train")
             rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001) # Normalized the rewards
-            for index, w in enumerate(weights_g):
+            for index, w in enumerate(self.weights):
                 A = np.array([p[index] for p in population])
-                print(weights_g[index])
-                weights_g[index] = (
+                print(self.weights[index])
+                self.weights[index] = (
                     w
                     + self.learning_rate
                     / (self.population_size * self.sigma)
@@ -241,7 +242,7 @@ class Deep_Evolution_Strategy:
             if (i + 1) % print_every == 0:
                 print(
                     'iter %d. reward: %f'
-                    % (i + 1, self.reward_function(weights_g, return_reward = True, split = "train"))
+                    % (i + 1, self.reward_function(self.weights, return_reward = True, split = "train"))
                 )
         print('time taken to train:', time.time() - lasttime, 'seconds')
 
@@ -338,7 +339,7 @@ class Agent:
     LEARNING_RATE = 0.03
 
     def __init__(
-        self, money, limit, close, window_size, skip, num_stocks, num_days
+        self, money, limit, close, window_size, skip, num_stocks, num_days, weights
     ):
         self.window_size = window_size
         self.num_stocks = num_stocks
@@ -347,7 +348,9 @@ class Agent:
         self.close = close
         self.initial_money = money
         self.limit = limit
+        self.weights = weights
         self.es = Deep_Evolution_Strategy(
+            self.weights,
             self.get_reward,
             self.POPULATION_SIZE,
             self.SIGMA,
@@ -362,7 +365,7 @@ class Agent:
     def act(self, sequence):
         decision = predict(np.array(sequence).reshape(self.num_stocks,self.window_size))
         # print(decision)
-        # print(self.softmax([decision]))
+        # print(self.softmax([decision]) * 100)
         return self.softmax(np.array([decision]) * 100)
 
     def buy_stock(self, portfolio, close_s, money, inventory, limit, t):
@@ -410,7 +413,7 @@ class Agent:
             We could add cost of trading stocks as well to this in the future.
         '''
 
-        weights_g = weights
+        weights_g = weights # This needs to be an update to the class Agent local weights
 
         # weight = model
         initial_money = self.initial_money
@@ -540,7 +543,7 @@ if __name__ == '__main__':
     warnings.filterwarnings('ignore')
 
     import os
-    os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
+    os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 
     from updated_NES_google_deterministic import load_data, get_state
 
@@ -585,6 +588,7 @@ if __name__ == '__main__':
         num_stocks = len(names),
         num_days = num_days,
         skip = 1,
+        weights = weights_g,
     )
 
 
