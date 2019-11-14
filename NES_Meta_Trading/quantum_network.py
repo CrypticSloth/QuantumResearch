@@ -233,6 +233,7 @@ class Deep_Evolution_Strategy:
                 # print("P: ", self.weights)
                 rewards[k] = self.reward_function(weights_population, split = "train")
             rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001) # Normalized the rewards
+            print("R :", rewards)
             for index, w in enumerate(self.weights):
                 A = np.array([p[index] for p in population])
                 print("1. :", self.weights[index])
@@ -417,6 +418,7 @@ class Agent:
             We could add cost of trading stocks as well to this in the future.
         '''
 
+        # This line is probably where the problem lies.
         weights_g = weights # This needs to update the weights that act() sees...
 
         # weight = model
