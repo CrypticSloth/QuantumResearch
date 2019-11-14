@@ -207,6 +207,7 @@ class Deep_Evolution_Strategy:
         weights_population = []
         for index, i in enumerate(population):
             jittered = self.sigma * i
+            # print("J: ", jittered)
             weights_population.append(weights[index] + jittered)
         return weights_population
 
@@ -228,17 +229,20 @@ class Deep_Evolution_Strategy:
                 weights_population = self._get_weight_from_population(
                     self.weights, population[k]
                 )
+                # print("WP: ", weights_population)
+                # print("P: ", self.weights)
                 rewards[k] = self.reward_function(weights_population, split = "train")
             rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001) # Normalized the rewards
             for index, w in enumerate(self.weights):
                 A = np.array([p[index] for p in population])
-                print(self.weights[index])
+                print("1. :", self.weights[index])
                 self.weights[index] = (
                     w
                     + self.learning_rate
                     / (self.population_size * self.sigma)
-                    * np.dot(A.T, rewards).T + 0.00001# Our task is to make this meta by storing each gradient into a global gradient from the MAML paper
+                    * np.dot(A.T, rewards).T# Our task is to make this meta by storing each gradient into a global gradient from the MAML paper
                 )
+                print("2. :", self.weights[index])
             if (i + 1) % print_every == 0:
                 print(
                     'iter %d. reward: %f'
@@ -413,7 +417,7 @@ class Agent:
             We could add cost of trading stocks as well to this in the future.
         '''
 
-        weights_g = weights # This needs to be an update to the class Agent local weights
+        weights_g = weights # This needs to update the weights that act() sees...
 
         # weight = model
         initial_money = self.initial_money
