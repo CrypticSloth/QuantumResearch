@@ -181,14 +181,13 @@ def quantum_neural_net(weights, x=None, bs=False):
             # qml.expval(qml.X(3))]
             # qml.expval(qml.X(4))]
 
-def predict(inputs, bs=False):
+def predict(inputs, weights, bs=False):
     '''
         Loop through each of the training data and apply it to the quantum network to get a prediction for each value.
 
         Will need to somehow make the QNN shape the values to output 5 values for the softmax function. Not sure how to do this since the network only updates with scalar values and the output is the size of the number of inputs.
     '''
-    global weights_g
-    preds = np.array([quantum_neural_net(weights_g, x=x ,bs=bs) for x in inputs.T])
+    preds = np.array([quantum_neural_net(weights, x=x ,bs=bs) for x in inputs.T])
 
     return [np.mean(p) for p in preds.T]
 
@@ -344,6 +343,9 @@ class Agent:
     SIGMA = 0.1
     LEARNING_RATE = 0.03
 
+    global weights_g
+    weights_l = weights_g
+
     def __init__(
         self, money, limit, close, window_size, skip, num_stocks, num_days, weights
     ):
@@ -370,7 +372,7 @@ class Agent:
 
     global predict
     def act(self, sequence):
-        decision = predict(np.array(sequence).reshape(self.num_stocks,self.window_size))
+        decision = predict(np.array(sequence).reshape(self.num_stocks,self.window_size), self.weights_l)
         # print(decision)
         # print(self.softmax([decision]) * 100)
         return self.softmax(np.array([decision]) * 100)
@@ -422,13 +424,13 @@ class Agent:
 
         # This line is probably where the problem lies.
 
-          
-            global weights_g
-            # print("WG1: ", weights_g)
-            # print("W: ", weights)
-            weights_g = weights # This needs to update the weights that act() sees...
-            # print("WG2: ", weights_g)
-            # weight = model
+
+        global weights_g
+        # print("WG1: ", weights_g)
+        # print("W: ", weights)
+        self.weights_l = weights # This needs to update the weights that act() sees...
+        # print("WG2: ", weights_g)
+        # weight = model
 
         initial_money = self.initial_money
         starting_money = initial_money
@@ -588,7 +590,7 @@ if __name__ == '__main__':
         return e_x / (e_x.sum() + 0.00001)
 
     num_layers = 4
-    global weights_g
+    # global weights_g
     weights_g = 0.05 * np.random.randn(num_layers, 10)
     print(weights_g)
     # np.array(predict(weights_g)) * 10
@@ -610,7 +612,7 @@ if __name__ == '__main__':
 
     # In[79]:
 
-    agent.fit(iterations = 25, checkpoint = 5)
+    agent.fit(iterations = 5, checkpoint = 1)
 
     print(weights_g)
 
