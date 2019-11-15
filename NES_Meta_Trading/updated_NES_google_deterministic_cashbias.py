@@ -345,9 +345,7 @@ class Agent:
 
             portfolio: list -> [[0.1, 0.3, 0.4, 0.0, 0.2]] where the first value is the amount of cash we are holding compared to our previous cash amount.
 
-            TODO: add the cash in as a stock 'option' so the model has full information on how much money is left
-                Now, the thing that is holding it back is the limit
-                Now we want the 'limit' to not be artificial, but have the algorithm decide its limits via the portfolio of cash amount.
+            TODO: add limits that include the cash bias to number of stocks we can purchase (not partial stocks)
         """
 
         if limit == None:
@@ -562,8 +560,8 @@ if __name__ == '__main__':
 
     # In[79]:
 
-    # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
-    agent.fit(iterations = 1000, checkpoint = 10)
+    agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
+    # agent.fit(iterations = 1000, checkpoint = 10)
 
     # In[80]:
 
