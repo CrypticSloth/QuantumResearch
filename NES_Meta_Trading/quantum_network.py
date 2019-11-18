@@ -343,8 +343,8 @@ class Agent:
     SIGMA = 0.1
     LEARNING_RATE = 0.03
 
-    global weights_g
-    weights_l = weights_g
+    # global weights_g
+    # weights_l = weights_g
 
     def __init__(
         self, money, limit, close, window_size, skip, num_stocks, num_days, weights
@@ -370,9 +370,9 @@ class Agent:
         e_x = np.exp(x - np.max(x))
         return e_x / (e_x.sum(axis=1) + 0.00001)
 
-    global predict
+    # global predict
     def act(self, sequence):
-        decision = predict(np.array(sequence).reshape(self.num_stocks,self.window_size), self.weights_l)
+        decision = predict(np.array(sequence).reshape(self.num_stocks,self.window_size), self.weights)
         # print(decision)
         # print(self.softmax([decision]) * 100)
         return self.softmax(np.array([decision]) * 100)
@@ -425,10 +425,10 @@ class Agent:
         # This line is probably where the problem lies.
 
 
-        global weights_g
+        # global weights_g
         # print("WG1: ", weights_g)
         # print("W: ", weights)
-        self.weights_l = weights # This needs to update the weights that act() sees...
+        self.weights = weights # This needs to update the weights that act() sees...
         # print("WG2: ", weights_g)
         # weight = model
 
@@ -559,7 +559,7 @@ if __name__ == '__main__':
     warnings.filterwarnings('ignore')
 
     import os
-    os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
+    os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
 
     from updated_NES_google_deterministic import load_data, get_state
 
@@ -615,7 +615,7 @@ if __name__ == '__main__':
     agent.fit(iterations = 5, checkpoint = 1)
 
     print(weights_g)
-
+    agent.weights
      # In[80]:
 
     agent.buy(split="test")
