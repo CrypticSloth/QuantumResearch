@@ -504,14 +504,14 @@ class Agent:
 
         cur_state = get_state(close, 0, self.window_size + 1, self.num_stocks,  num_days)
 
-        for t in range(0, self.num_days - 1, self.skip):
+        for t in range(0, num_days - 1, self.skip):
 
             portfolio = self.act(cur_state)
-            next_state = get_state(close, t + 1, self.window_size + 1, self.num_stocks, num_days).reshape(self.num_stocks,self.window_size)
+            next_state = get_state(close, t + 1, self.window_size + 1, self.num_stocks, num_days)
 
             next_inventory = self.buy_stock(portfolio, close_s, cur_inventory, self.limit, t)
 
-            cur_state = next_state.flatten()
+            cur_state = next_state
             cur_inventory = next_inventory
 
         if self.limit == None:
@@ -659,9 +659,37 @@ if __name__ == '__main__':
 
     # In[79]:
 
+    # Training the meta
     # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
-    agent.fit(epochs = 100, num_tasks = num_stocks, checkpoint = 10, split=None, save_results = False)
+    agent.fit(epochs = 10, num_tasks = num_portfolios, checkpoint = 2, split=None, save_results = False)
 
     # In[80]:
+    # Training the trained meta on one stock with fewer epochs
+    testModel = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
+    testModel.set_weights = model.get_theta
+
+    num_portfolios = 1
+    num_stocks = 5
+    num_days = 30
+    data = load_data("dataset/train/", num_portfolios, num_stocks, num_days) #TODO: Need to make a test data
+
+    close_s = data.reshape(num_portfolios,num_stocks,num_days)
+    close_s[0]
+
+    agent = Agent(
+        model = model,
+        money = 10000,
+        limit = 5,
+        close = data,
+        window_size = window_size,
+        num_portfolios = num_portfolios,
+        num_stocks = num_stocks,
+        num_days = num_days,
+        skip = 1,
+        split = "test"
+    )
+
+    # Train with a few epochs to test the meta learning
+    agent.fit(epochs = 50, num_tasks = num_portfolios, checkpoint = 5, split="train", save_results = False)
 
     agent.buy(split="test")
