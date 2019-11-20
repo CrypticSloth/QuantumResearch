@@ -197,62 +197,62 @@ def predict(inputs, weights, bs=False):
 # %%
 # Testing code
 
-import os
-import numpy as np
-import math
-os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
-
-from updated_NES_google_deterministic import load_data, get_state
-import warnings
-warnings.filterwarnings('ignore')
-
-def test():
-    num_days = 30
-    close, names = load_data("dataset/train/",num_days)
-    num_stocks = len(names) # This will need to be used to calculate the iterations and input layer sizes along with num_days
-    num_stocks
-    np.shape(close)
-
-    def softmax(x):
-        """Compute softmax values for each sets of scores in x."""
-        e_x = np.exp(x - np.max(x))
-        return e_x / (e_x.sum(axis=1) + 0.00001)
-
-    def act(sequence, weights):
-        decision = predict(np.array(sequence).reshape(num_stocks,window_size), weights)
-        # print(decision)
-        # print(self.softmax([decision]) * 100)
-        return softmax(np.array([decision]) * 10)
-
-    num_layers = 4
-    weights = 0.05 * np.random.randn(num_layers, 10)
-
-    initial_money = 10000
-    window_size = 10
-    limit = 5
-    starting_money = initial_money
-    close_s = close.reshape(num_stocks,int(len(close)/num_stocks))
-
-    close = close_s.flatten() # Use the split data for close
-    np.shape(close)
-
-    # Initialize a dictionary to keep track of which stocks we can buy
-    keys = range(num_stocks)
-    cur_inventory = {key: 0 for key in keys}
-
-
-    cur_state = get_state(close, 0, window_size + 1, num_days, num_stocks)
-    np.shape(cur_state)
-    for t in range(0, len(close_s[0]) - 1):
-
-        portfolio = act(cur_state, weights)
-        next_state = get_state(close, t + 1, window_size + 1, num_days, num_stocks)
-        next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, limit, t)
-
-        cur_state = next_state
-        cur_inventory = next_inventory
-
-    return (initial_money / starting_money - 1) * 100 # rate of returns
+# import os
+# import numpy as np
+# import math
+# os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
+#
+# from updated_NES_google_deterministic import load_data, get_state
+# import warnings
+# warnings.filterwarnings('ignore')
+#
+# def test():
+#     num_days = 30
+#     close, names = load_data("dataset/train/",num_days)
+#     num_stocks = len(names) # This will need to be used to calculate the iterations and input layer sizes along with num_days
+#     num_stocks
+#     np.shape(close)
+#
+#     def softmax(x):
+#         """Compute softmax values for each sets of scores in x."""
+#         e_x = np.exp(x - np.max(x))
+#         return e_x / (e_x.sum(axis=1) + 0.00001)
+#
+#     def act(sequence, weights):
+#         decision = predict(np.array(sequence).reshape(num_stocks,window_size), weights)
+#         # print(decision)
+#         # print(self.softmax([decision]) * 100)
+#         return softmax(np.array([decision]) * 10)
+#
+#     num_layers = 4
+#     weights = 0.05 * np.random.randn(num_layers, 10)
+#
+#     initial_money = 10000
+#     window_size = 10
+#     limit = 5
+#     starting_money = initial_money
+#     close_s = close.reshape(num_stocks,int(len(close)/num_stocks))
+#
+#     close = close_s.flatten() # Use the split data for close
+#     np.shape(close)
+#
+#     # Initialize a dictionary to keep track of which stocks we can buy
+#     keys = range(num_stocks)
+#     cur_inventory = {key: 0 for key in keys}
+#
+#
+#     cur_state = get_state(close, 0, window_size + 1, num_days, num_stocks)
+#     np.shape(cur_state)
+#     for t in range(0, len(close_s[0]) - 1):
+#
+#         portfolio = act(cur_state, weights)
+#         next_state = get_state(close, t + 1, window_size + 1, num_days, num_stocks)
+#         next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, limit, t)
+#
+#         cur_state = next_state
+#         cur_inventory = next_inventory
+#
+#     return (initial_money / starting_money - 1) * 100 # rate of returns
 
 # close
 # cur_state = get_state(close, 10, window_size + 1, num_days, num_stocks)
@@ -270,10 +270,10 @@ def test():
 # test()
 
 
-t = []
-for i in range(10):
-    t.append(test())
-t
+# t = []
+# for i in range(10):
+#     t.append(test())
+# t
 
 # %%
 
@@ -554,7 +554,7 @@ if __name__ == '__main__':
     warnings.filterwarnings('ignore')
 
     import os
-    os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
+    os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 
     from updated_NES_google_deterministic import load_data, get_state
 
@@ -576,7 +576,7 @@ if __name__ == '__main__':
 
     num_layers = 4
     weights = 0.05 * np.random.randn(num_layers, 10)
-    print(weights)
+    # print(weights)
 
 
     # model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = len(names))
@@ -594,13 +594,13 @@ if __name__ == '__main__':
 
     # In[79]:
 
-    agent.fit(iterations = 100, checkpoint = 10)
+    agent.fit(iterations = 10000, checkpoint = 10)
 
     # Weights are changing...
-    print(agent.weights)
+    # print(agent.weights)
       # In[80]:
 
-    agent.buy(split="test")
+    # agent.buy(split="test")
 
 # In[66]: ######################################################################
 
