@@ -127,7 +127,6 @@ def quantum_neural_net(weights, x=None, bs=False):
         weights: list of lists of scalar weights (of length 5)
         x: list of stock closing values for 5 stocks
     '''
-    print(x)
     # Encode input x into quantum state
     qml.Displacement(x[0], 0.0, wires=0)
     qml.Displacement(x[1], 0.0, wires=1)
@@ -155,10 +154,10 @@ def predict(inputs, weights, bs=False):
 
         Will need to somehow make the QNN shape the values to output 5 values for the softmax function. Not sure how to do this since the network only updates with scalar values and the output is the size of the number of inputs.
     '''
-    preds = [quantum_neural_net(weights, x=x, bs=bs)
-            for y in np.array(inputs).T
-            for x in [y]]
-    # preds = np.array([quantum_neural_net(weights, x=x ,bs=bs) for x in inputs.T])
+    # preds = [quantum_neural_net(weights, x=x, bs=bs)
+    #         for y in np.array(inputs).T
+    #         for x in [y]]
+    preds = np.array([quantum_neural_net(weights, x=x ,bs=bs) for x in inputs.T])
 
     return [np.sum(p) for p in np.array(preds).T] # I feel that this could be wrong
 
@@ -201,7 +200,7 @@ def buy_stock(portfolio, close_s, money, inventory, limit, t):
 import os
 import numpy as np
 import math
-os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 
 from updated_NES_google_deterministic import load_data, get_state
 import warnings
@@ -221,6 +220,7 @@ def test():
 
     def act(sequence, weights):
         decision = predict(np.array(sequence).reshape(num_stocks,window_size), weights)
+        # print(softmax(np.array([decision]) * 1))
         # print(decision)
         # print(self.softmax([decision]) * 100)
         return softmax(np.array([decision]) * 10)
@@ -229,7 +229,7 @@ def test():
     weights = 0.05 * np.random.randn(num_layers, 10)
 
     initial_money = 10000
-    window_size = 10
+    window_size = 1
     limit = 5
     starting_money = initial_money
     close_s = close.reshape(num_stocks,int(len(close)/num_stocks))
@@ -252,12 +252,17 @@ def test():
         next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, limit, t)
 
         cur_state = next_state
+        print(next_inventory)
         cur_inventory = next_inventory
 
     return cur_inventory, (initial_money / starting_money - 1) * 100 # rate of returns
 
+test()
+test()
+
 # close
 cur_state = get_state(close, 10, window_size + 1, num_days, num_stocks)
+cur_state
 # cur_state.reshape(num_stocks, window_size)
 bs = False
 preds = [quantum_neural_net(weights, x=x, bs=bs)
@@ -280,9 +285,10 @@ test()
 x_pred = np.array([np.linspace(-1,1,10), np.linspace(-1,1,10)])
 predictions = [quantum_neural_net(weights, x=x_) for x_ in x_pred.T]
 predictions
+
 t1 = []
 t2 = []
-for i in range(10):
+for i in range(30):
     inv, rew = test()
     t2.append(rew)
     t1.append(inv)
@@ -571,7 +577,7 @@ if __name__ == '__main__':
     warnings.filterwarnings('ignore')
 
     import os
-    os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
+    os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 
     from updated_NES_google_deterministic import load_data, get_state
 
@@ -581,7 +587,7 @@ if __name__ == '__main__':
     num_stocks
     np.shape(close)
 
-    window_size = 10
+    window_size = 1
     cur_state = get_state(close, 10, window_size + 1, num_days, num_stocks)
 
     # %%
@@ -611,7 +617,7 @@ if __name__ == '__main__':
 
     # In[79]:
 
-    agent.fit(iterations = 5, checkpoint = 1)
+    agent.fit(iterations = 5000, checkpoint = 100)
 
     # Weights are changing...
     # print(agent.weights)
