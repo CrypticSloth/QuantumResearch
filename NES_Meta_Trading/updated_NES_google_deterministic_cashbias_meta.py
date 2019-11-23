@@ -27,17 +27,21 @@ def load_data(path, num_portfolios, num_stocks, num_days = 30):
     for i in range(num_portfolios):
         paths = random.sample(paths, num_stocks) # Randomly sample stocks to go in the portfolio
         data = []
-        # names = []
+        names = []
         for p in paths:
             data.append(pd.read_csv(path + p).Close.values.tolist()[0:num_days])
-            # names.append(p[:-4])
+            if num_portfolios == 1:
+                names.append(p[:-4])
 
         # Check that all data are the same size
         assert len(set([len(d) for d in data])) == 1, "Stock data has differing number of days recorded"
 
         portfolios.append(np.array([data]).flatten())
 
-    return np.array(portfolios)
+    if num_portfolios == 1:
+        return np.array(portfolios), names
+    else:
+        return np.array(portfolios)
 
 def get_state(data, t, n, num_stocks, num_days):
     '''
@@ -532,21 +536,24 @@ class Agent:
     def fit(self, epochs, num_tasks, checkpoint, split, save_results):
         self.es.train(epochs, num_tasks, print_every = checkpoint, split = split, save_results = save_results, path = self.get_path(epochs))
 
-    def buy(self, split):
+    def buy(self, split, names):
 
-        # weight = self.model
+        # can only test on one portfolio, which is sufficient to test meta learning
+        # for each stock in the portfolio...
         for i in range(len(self.close)):
 
             # Can only test on data size of one portfolio
-            if split == "train":
-                close = self.close[i][0:round(self.num_days*.7)]
-            if split == "test":
-                close = self.close[i][round(self.num_days*.7):-1]
+            # if split == "train":
+            #     close = self.close[i][0:round(self.num_days*.7)]
+            #     num_days = round(self.num_days*0.7)
+            # if split == "test":
+            #     close = self.close[i][round(self.num_days*.7):-1]
+            #     num_days = round(self.num_days*0.3)
 
             initial_money = self.initial_money
             starting_money = initial_money
-            close_s = self.close.reshape(
-                self.num_portfolios,
+            close_s = self.close[i].reshape(
+                # self.num_portfolios,
                 self.num_stocks,
                 self.num_days)
 
@@ -668,13 +675,13 @@ if __name__ == '__main__':
     testModel = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
     testModel.set_weights = model.get_theta
 
-    num_portfolios = 1
-    num_stocks = 5
     num_days = 30
-    data = load_data("dataset/train/", num_portfolios, num_stocks, num_days) #TODO: Need to make a test data
+    num_stocks = 5
+    num_portfolios = 1
+    data, names = load_data("dataset/test/", num_portfolios, num_stocks, num_days)
 
-    close_s = data.reshape(num_portfolios,num_stocks,num_days)
-    close_s[0]
+    # close_s = data.reshape(num_portfolios,num_stocks,num_days)
+    # close_s[0]
 
     agent = Agent(
         model = model,
@@ -690,6 +697,6 @@ if __name__ == '__main__':
     )
 
     # Train with a few epochs to test the meta learning
-    agent.fit(epochs = 50, num_tasks = num_portfolios, checkpoint = 5, split="train", save_results = False)
+    agent.fit(epochs = 5, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = False)
 
-    agent.buy(split="test")
+    agent.buy(split="test", names=names)
