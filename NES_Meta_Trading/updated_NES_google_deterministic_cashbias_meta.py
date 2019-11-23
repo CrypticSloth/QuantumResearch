@@ -398,7 +398,7 @@ class Agent:
             self.window_size
         )
         # This will need to be set per computer
-        return 'D:/GitHub/CSCI380-CollabResearchCS/NES_Meta/results/' + self.split + '/' + dir_name
+        return 'D:/GitHub/QuantumResearch/NES_Meta_Trading/results/meta/' + self.split + '/' + dir_name
 
     def softmax(self, x):
         """Compute softmax values for each sets of scores in x."""
@@ -536,7 +536,7 @@ class Agent:
     def fit(self, epochs, num_tasks, checkpoint, split, save_results):
         self.es.train(epochs, num_tasks, print_every = checkpoint, split = split, save_results = save_results, path = self.get_path(epochs))
 
-    def buy(self, split, names):
+    def buy(self, split, names, save_results, epochs):
 
         # can only test on one portfolio, which is sufficient to test meta learning
         # for each stock in the portfolio...
@@ -578,6 +578,8 @@ class Agent:
 
             inv = []
 
+            total_values = []
+            total_returns = []
             for t in range(0, len(close_s[0]) - 1, self.skip):
 
                 portfolio = self.act(cur_state)
@@ -594,6 +596,12 @@ class Agent:
                 cur_state = next_state.flatten()
                 cur_inventory = next_inventory
 
+                if save_results == True:
+                    total_asset_value = np.sum([close_s[i][t] * cur_inventory[i+1] for i in range(self.num_stocks)]) + cur_inventory[0]
+
+                    total_values.append(total_asset_value)
+                    total_returns.append(((total_asset_value - starting_money) / starting_money + 0.00001) * 100)
+
             total_asset_value = np.sum([close_s[i][-1] * cur_inventory[i+1] for i in range(self.num_stocks)]) + cur_inventory[0]
             rho1 = (total_asset_value / starting_money - 1) * 100 # rate of returns
 
@@ -608,27 +616,45 @@ class Agent:
                 inv_f.append(np.array(inv_d)[:,i])
             inv_f = np.array(inv_f)
 
-            print("Inventory at every timestep: \n ")
-            for i in inv:
-                f = ['%.2f' % x for x in i]
-                print(str(f))
+            if save_results != True:
+                print("Inventory at every timestep: \n ")
+                for i in inv:
+                    f = ['%.2f' % x for x in i]
+                    print(str(f))
 
-            print(
-                '\ntotal gained %f, total investment %f %%'
-                % (total_asset_value - starting_money, rho1)
-            )
-            for i in range(len(close_s)):
-                plt.figure(figsize = (20, 10))
-                plt.title(names[i])
-                plt.plot(close_s[i], label = 'true close', c = 'g')
-                plt.plot(
-                    close_s[i], 'X', label = 'predict buy', markevery = list(np.where(inv_f[i] > 0)[0]), c = 'b'
+                print(
+                    '\ntotal gained %f, total investment %f %%'
+                    % (total_asset_value - starting_money, rho1)
                 )
-                plt.plot(
-                    close_s[i], 'o', label = 'predict sell', markevery = list(np.where(inv_f[i] < 0)[0]), c = 'r'
-                )
-                plt.legend()
-                plt.show()
+                for i in range(len(close_s)):
+                    plt.figure(figsize = (20, 10))
+                    plt.title(names[i])
+                    plt.plot(close_s[i], label = 'true close', c = 'g')
+                    plt.plot(
+                        close_s[i], 'X', label = 'predict buy', markevery = list(np.where(inv_f[i] > 0)[0]), c = 'b'
+                    )
+                    plt.plot(
+                        close_s[i], 'o', label = 'predict sell', markevery = list(np.where(inv_f[i] < 0)[0]), c = 'r'
+                    )
+                    plt.legend()
+                    plt.show()
+
+            if save_results == True:
+                path = self.get_path(epochs)
+
+                df = pd.DataFrame()
+                df['roi'] = total_returns
+                df['returns'] = total_values
+
+                ts = time.time()
+                df.to_csv(path + '/{}_test_reward.csv'.format(int(ts)), index=True)
+
+    def save(self, epochs):
+        ''' save the results of the agent to disk '''
+        # User input path = 'results/(train/test)/'
+
+        ts = int(time.time())
+        np.save(self.get_path(epochs) + '{}_model_weights.npy'.format(ts),model.get_theta())
 
 # In[78]:
 
@@ -668,7 +694,9 @@ if __name__ == '__main__':
 
     # Training the meta
     # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
-    agent.fit(epochs = 10, num_tasks = num_portfolios, checkpoint = 2, split=None, save_results = False)
+    epochs = 10
+    agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 2, split=None, save_results = True)
+    agent.save(epochs=epochs)
 
     # In[80]:
     # Training the trained meta on one stock with fewer epochs
@@ -697,6 +725,8 @@ if __name__ == '__main__':
     )
 
     # Train with a few epochs to test the meta learning
-    agent.fit(epochs = 5, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = False)
+    epochs = 5
+    agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = True)
+    agent.save(epochs)
 
-    agent.buy(split="test", names=names)
+    agent.buy(split="test", names=names, save_results=True, epochs=epochs)
