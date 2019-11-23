@@ -88,9 +88,10 @@ class Deep_Evolution_Strategy:
     def get_weights(self):
         return self.weights
 
-    def train(self, epoch = 100, print_every = 1):
+    def train(self, epochs, print_every, save_results, path):
         lasttime = time.time()
-        for i in range(epoch):
+        results = []
+        for i in range(epochs):
             population = []
             rewards = np.zeros(self.population_size)
             for k in range(self.population_size):
@@ -117,7 +118,23 @@ class Deep_Evolution_Strategy:
                     'iter %d. reward: %f'
                     % (i + 1, self.reward_function(self.weights, return_reward = True, split = "train"))
                 )
+            if save_results == True:
+                results.append(self.reward_function(self.weights, return_reward=True, split="train"))
         print('time taken to train:', time.time() - lasttime, 'seconds')
+
+        print('-----------------')
+
+        if save_results == True:
+            df = pd.DataFrame()
+            df['epochs'] = [i for i in range(0,epochs)]
+            df['rewards'] = results
+
+            if not os.path.exists(path):
+                os.mkdir(path)
+                print("Directory " , path ,  " Created ")
+
+            ts = time.time()
+            df.to_csv(path + '/{}_train_rewards.csv'.format(int(ts)), index=False)
 
 
 # In[64]:
@@ -265,7 +282,6 @@ class Agent:
         self, model, money, limit, close, window_size, skip, num_stocks, num_days
     ):
         self.window_size = window_size
-        self.window_size = window_size
         self.num_stocks = num_stocks
         self.num_days = num_days
         self.skip = skip
@@ -281,45 +297,20 @@ class Agent:
             self.LEARNING_RATE,
         )
 
-    def act_old(self, sequence):
-        decision, buy = self.model.predict(np.array(sequence))
-        return np.argmax(decision[0]), int(buy[0])
-
-    def get_reward_old(self, weights):
-        initial_money = self.initial_money
-        starting_money = initial_money
-        # len_close = len(self.close) - 1
-        len_close = int(len(self.close)/ num_stocks) - 1
-
-        self.model.weights = weights
-        state = get_state(self.close, 0, self.window_size + 1, self.num_days, self.num_stocks)
-        inventory = []
-        quantity = 0
-        for t in range(0, len_close, self.skip):
-            action, buy = self.act(state)
-            next_state = get_state(self.close, t + 1, self.window_size + 1, self.num_days, self.num_stocks)
-            if action == 1 and initial_money >= self.close[t]:
-                if buy < 0:
-                    buy = 1
-                if buy > self.max_buy:
-                    buy_units = self.max_buy
-                else:
-                    buy_units = buy
-                total_buy = buy_units * self.close[t]
-                initial_money -= total_buy
-                inventory.append(total_buy)
-                quantity += buy_units
-            elif action == 2 and len(inventory) > 0:
-                if quantity > self.max_sell:
-                    sell_units = self.max_sell
-                else:
-                    sell_units = quantity
-                quantity -= sell_units
-                total_sell = sell_units * self.close[t]
-                initial_money += total_sell
-
-            state = next_state
-        return ((initial_money - starting_money) / starting_money) * 100 + 0.00001
+    def get_path(self,epochs):
+        dir_name = 'E={}_PS={}_S={}_LR={}_sk={}_IM={}_L={}_WS={}/'.format(
+            epochs,
+            self.POPULATION_SIZE,
+            self.SIGMA,
+            self.LEARNING_RATE,
+            self.skip,
+            # self.beta,
+            self.initial_money,
+            self.limit,
+            self.window_size
+        )
+        # This will need to be set per computer
+        return 'D:/GitHub/QuantumResearch/NES_Meta_Trading/results/base/train/' + dir_name
 
     def softmax(self, x):
         """Compute softmax values for each sets of scores in x."""
@@ -366,11 +357,12 @@ class Agent:
 
         else:
 
+            # TODO: Something is wrong when we try to place the limits
             total_asset_value = np.sum([close_s[i][t] * inventory[i+1] for i in range(len(close_s))]) + inventory[0] # reset our inventory into cash (keeping current cash separate)
 
             portfolio_money = portfolio[0] * total_asset_value # portfolio[0] because portfolio is an array of array of size 1
 
-            spending_money = total_asset_value - portfolio_money[0]
+            spending_money = total_asset_value
 
             c = 0
             for m in portfolio_money[1:]:
@@ -434,23 +426,22 @@ class Agent:
             cur_state = next_state.flatten()
             cur_inventory = next_inventory
 
-        if self.limit == None:
-            total_asset_value = np.sum([close_s[i][-1] * cur_inventory[i+1] for i in range(len(close_s))]) + cur_inventory[0]
-            rho1 = (total_asset_value / starting_money - 1) * 100 # rate of returns
-            r1 = np.log((total_asset_value + 0.00001) / (starting_money + 0.00001)) # log rate of return (eq10)
-        else:
-            total_asset_value = np.sum([close_s[i][-1] * cur_inventory[i+1] for i in range(len(close_s))]) + cur_inventory[0]
-            rho1 = (total_asset_value / starting_money - 1) * 100 # rate of returns
-            r1 = np.log((total_asset_value + 0.00001) / (starting_money + 0.00001)) # log rate of return (eq10)
+        # if self.limit == None:
+        total_asset_value = np.sum([close_s[i][-1] * cur_inventory[i+1] for i in range(len(close_s))]) + cur_inventory[0]
+        rho1 = (total_asset_value / starting_money - 1) * 100 # rate of returns
+        r1 = np.log((total_asset_value + 0.00001) / (starting_money + 0.00001)) # log rate of return (eq10)
+        # else:
+            # total_asset_value = np.sum([close_s[i][-1] * cur_inventory[i+1] for i in range(len(close_s))]) + cur_inventory[0]
+            # rho1 = (total_asset_value / starting_money - 1) * 100 # rate of returns
+            # r1 = np.log((total_asset_value + 0.00001) / (starting_money + 0.00001)) # log rate of return (eq10)
 
         if return_reward == True:
             return rho1
         else:
             return r1
 
-
-    def fit(self, iterations, checkpoint):
-        self.es.train(iterations, print_every = checkpoint)
+    def fit(self, epochs, checkpoint, save_results):
+        self.es.train(epochs, print_every = checkpoint, save_results=save_results, path=self.get_path(epochs))
 
     def buy(self, split):
 
@@ -531,15 +522,21 @@ class Agent:
             plt.legend()
             plt.show()
 
+    def save(self, epochs):
+        ''' save the results of the agent to disk '''
+        # User input path = 'results/(train/test)/'
+
+        ts = int(time.time())
+        np.save(self.get_path(epochs) + '{}_model_weights.npy'.format(ts),model.get_theta())
+
 # In[78]:
 
 if __name__ == '__main__':
 
     import argparse
     parser = argparse.ArgumentParser(description='Train and test portfolio trainer')
-    parser.add_argument('--iterations', type=int, help='How many iterations to train the model.')
+    parser.add_argument('--epochs', type=int, help='How many epochs to train the model.')
     parser.add_argument('--checkpoint', type=int, help='How many iterations to print progress to console.')
-
     args = parser.parse_args()
 
     window_size = 10
@@ -561,9 +558,10 @@ if __name__ == '__main__':
 
 
     # In[79]:
+    # agent.fit(epochs = args.epochs, checkpoint = args.checkpoint)
+    agent.fit(epochs = 100, checkpoint = 10, save_results = True)
 
-    agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
-    # agent.fit(iterations = 1000, checkpoint = 10)
+
 
     # In[80]:
 
