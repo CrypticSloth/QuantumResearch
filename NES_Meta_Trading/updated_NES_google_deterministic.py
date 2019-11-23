@@ -11,7 +11,7 @@ import pandas as pd
 sns.set()
 
 import os
-os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
 
 # In[58]:
 
