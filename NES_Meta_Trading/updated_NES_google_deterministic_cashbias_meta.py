@@ -144,7 +144,7 @@ class Deep_Evolution_Strategy:
                 self.theta_.append(t)
 
 
-                r.append(self.reward_function(self.theta, index=i, split=split))
+                r.append(self.reward_function(self.theta, index=i, split=split, return_reward=True))
 
             # # Update the global meta theta that is the average gradient
             # self.theta.append(np.mean(self.theta_))
@@ -187,7 +187,7 @@ class Deep_Evolution_Strategy:
 
             self.theta = self.theta + self.learning_rate * (self.meta_gradient/(num_tasks + .00001))
 
-            if e % print_every ==0:
+            if (e + 1) % print_every == 0:
                 print(
                     'Epoch {}, reward: {}'.format(e,np.mean(r))
                 )
@@ -447,7 +447,7 @@ class Agent:
 
             portfolio_money = portfolio[0] * total_asset_value # portfolio[0] because portfolio is an array of array of size 1
 
-            spending_money = total_asset_value - portfolio_money[0]
+            spending_money = total_asset_value #- portfolio_money[0]
 
             c = 0
             for m in portfolio_money[1:]:
