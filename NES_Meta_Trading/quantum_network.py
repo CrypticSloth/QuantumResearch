@@ -1,3 +1,4 @@
+
 import pennylane as qml
 from pennylane import numpy as np
 
@@ -127,10 +128,7 @@ def quantum_neural_net(weights, x=None, bs=False):
         weights: list of lists of scalar weights (of length 5)
         x: list of stock closing values for 5 stocks
     '''
-<<<<<<< HEAD
-=======
-    # print("X: ", x)
->>>>>>> 1b60f70531a9df4e5a0741abd30f7aefcd62da91
+
     # Encode input x into quantum state
     qml.Displacement(x[0], 0.0, wires=0)
     qml.Displacement(x[1], 0.0, wires=1)
@@ -149,7 +147,7 @@ def quantum_neural_net(weights, x=None, bs=False):
     return [qml.expval(qml.X(0)),
             qml.expval(qml.X(1))]
             # qml.expval(qml.X(2)),
-            # qml.expval(qml.X(3))]
+            # qml.expval(qml.X(3)),
             # qml.expval(qml.X(4))]
 
 def predict(inputs, weights, bs=False):
@@ -158,161 +156,20 @@ def predict(inputs, weights, bs=False):
 
         Will need to somehow make the QNN shape the values to output 5 values for the softmax function. Not sure how to do this since the network only updates with scalar values and the output is the size of the number of inputs.
     '''
-<<<<<<< HEAD
-    # preds = [quantum_neural_net(weights, x=x, bs=bs)
-    #         for y in np.array(inputs).T
-    #         for x in [y]]
-    preds = np.array([quantum_neural_net(weights, x=x ,bs=bs) for x in inputs.T])
 
-=======
     preds = [quantum_neural_net(weights, x=x, bs=bs)
             for y in np.array(inputs).T
             for x in [y]]
     # preds = np.array([quantum_neural_net(weights, x=x ,bs=bs) for x in inputs.T])
     # print("P: ", preds)
     # print("Ps: ", [np.sum(p) for p in np.array(preds).T] )
->>>>>>> 1b60f70531a9df4e5a0741abd30f7aefcd62da91
+
     return [np.sum(p) for p in np.array(preds).T] # I feel that this could be wrong
 
 # %%
 # Testing code
-<<<<<<< HEAD
-
-def buy_stock(portfolio, close_s, money, inventory, limit, t):
-    """
-        Function that takes in portfolio weights (percentage of each stock in the entire portfolio),
-        the current stock prices (close price) and the money we currently have
-        and calculates the maximum number of stocks we can buy with the weights given in the portfolio.
-
-        Inventory is the dictionary containing how many stocks we own.
-        Limit puts a maximum number of stock we can purchase
-        t is the current time step
-
-        TODO: Getting negetive inventory values from negetive cash
-        TODO: instead of dealing with cash amounts we should deal with percentage gain (normalized)?
-    """
-
-    c = 0
-    cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money # reset our inventory into cash
-
-    portfolio_money = portfolio[0] * cash
-
-    p = []
-    for m in portfolio_money:
-        num_stock = math.floor(m / (close_s[c][t] + 0.000001))
-        p.append(close_s[c][t])
-        if num_stock <= limit:
-            inventory[c] = num_stock
-        else:
-            inventory[c] = limit
-
-        cash -= (inventory[c] * close_s[c][t])
-        c += 1
-
-    return inventory, cash
-
-import os
-import numpy as np
-import math
-os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
-
-from updated_NES_google_deterministic import load_data, get_state
-import warnings
-warnings.filterwarnings('ignore')
-
-def test():
-    num_days = 30
-    close, names = load_data("dataset/train_q/",num_days)
-    num_stocks = len(names) # This will need to be used to calculate the iterations and input layer sizes along with num_days
-    num_stocks
-    np.shape(close)
-
-    def softmax(x):
-        """Compute softmax values for each sets of scores in x."""
-        e_x = np.exp(x - np.max(x))
-        return e_x / (e_x.sum(axis=1) + 0.00001)
-
-    def act(sequence, weights):
-        decision = predict(np.array(sequence).reshape(num_stocks,window_size), weights)
-        # print(softmax(np.array([decision]) * 1))
-        # print(decision)
-        # print(self.softmax([decision]) * 100)
-        return softmax(np.array([decision]) * 10)
-
-    num_layers = 4
-    weights = 0.05 * np.random.randn(num_layers, 10)
-
-    initial_money = 10000
-    window_size = 1
-    limit = 5
-    starting_money = initial_money
-    close_s = close.reshape(num_stocks,int(len(close)/num_stocks))
-
-    close = close_s.flatten() # Use the split data for close
-    np.shape(close)
-
-    # Initialize a dictionary to keep track of which stocks we can buy
-    keys = range(num_stocks)
-    cur_inventory = {key: 0 for key in keys}
 
 
-    cur_state = get_state(close, 0, window_size + 1, num_days, num_stocks)
-    np.shape(cur_state)
-    for t in range(0, len(close_s[0]) - 1):
-
-        portfolio = act(cur_state, weights)
-        print(portfolio)
-        next_state = get_state(close, t + 1, window_size + 1, num_days, num_stocks)
-        next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, limit, t)
-
-        cur_state = next_state
-        print(next_inventory)
-        cur_inventory = next_inventory
-
-    return cur_inventory, (initial_money / starting_money - 1) * 100 # rate of returns
-
-test()
-test()
-
-# close
-cur_state = get_state(close, 10, window_size + 1, num_days, num_stocks)
-cur_state
-# cur_state.reshape(num_stocks, window_size)
-bs = False
-preds = [quantum_neural_net(weights, x=x, bs=bs)
-        for y in np.array(cur_state).reshape(num_stocks, window_size).T
-        for x in [y]]
-[x
-for y in np.array(cur_state).reshape(num_stocks, window_size).T
-for x in [y]]
-
-cur_state.reshape(num_stocks, window_size)
-np.array(preds).T
-
-[np.sum(p) for p in np.array(preds).T]
-
-port = act(cur_state, weights)
-port
-
-test()
-
-x_pred = np.array([np.linspace(-1,1,10), np.linspace(-1,1,10)])
-predictions = [quantum_neural_net(weights, x=x_) for x_ in x_pred.T]
-predictions
-
-t1 = []
-t2 = []
-for i in range(30):
-    inv, rew = test()
-    t2.append(rew)
-    t1.append(inv)
-t1
-t2
-
-test()
-test()
-=======
-#
 # def buy_stock(portfolio, close_s, money, inventory, limit, t):
 #     """
 #         Function that takes in portfolio weights (percentage of each stock in the entire portfolio),
@@ -349,7 +206,7 @@ test()
 # import os
 # import numpy as np
 # import math
-# os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
+# os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 #
 # from updated_NES_google_deterministic import load_data, get_state
 # import warnings
@@ -369,16 +226,17 @@ test()
 #
 #     def act(sequence, weights):
 #         decision = predict(np.array(sequence).reshape(num_stocks,window_size), weights)
+#         # print(softmax(np.array([decision]) * 1))
 #         # print(decision)
 #         # print(self.softmax([decision]) * 100)
-#         return softmax(np.array([decision]) * 1)
+#         return softmax(np.array([decision]) * 10)
 #
 #     num_layers = 4
 #     weights = 0.05 * np.random.randn(num_layers, 10)
 #
 #     initial_money = 10000
 #     window_size = 1
-#     limit = math.inf
+#     limit = 5
 #     starting_money = initial_money
 #     close_s = close.reshape(num_stocks,int(len(close)/num_stocks))
 #
@@ -395,20 +253,21 @@ test()
 #     for t in range(0, len(close_s[0]) - 1):
 #
 #         portfolio = act(cur_state, weights)
-#         print("S: ", portfolio)
+#         print(portfolio)
 #         next_state = get_state(close, t + 1, window_size + 1, num_days, num_stocks)
 #         next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, limit, t)
 #
 #         cur_state = next_state
-#         print("I :", next_inventory)
+#         print(next_inventory)
 #         cur_inventory = next_inventory
 #
 #     return cur_inventory, (initial_money / starting_money - 1) * 100 # rate of returns
 #
 # test()
-#
-# # close
-# cur_state = get_state(close, 1, window_size + 1, num_days, num_stocks)
+# test()
+
+# close
+# cur_state = get_state(close, 10, window_size + 1, num_days, num_stocks)
 # cur_state
 # # cur_state.reshape(num_stocks, window_size)
 # bs = False
@@ -432,6 +291,7 @@ test()
 # x_pred = np.array([np.linspace(-1,1,10), np.linspace(-1,1,10)])
 # predictions = [quantum_neural_net(weights, x=x_) for x_ in x_pred.T]
 # predictions
+#
 # t1 = []
 # t2 = []
 # for i in range(30):
@@ -440,11 +300,10 @@ test()
 #     t1.append(inv)
 # t1
 # t2
-
-# test()
-# test()
 #
->>>>>>> 1b60f70531a9df4e5a0741abd30f7aefcd62da91
+# test()
+# test()
+
 
 # %%
 
@@ -468,9 +327,10 @@ class Deep_Evolution_Strategy:
     def get_weights(self):
         return self.weights
 
-    def train(self, epoch = 100, print_every = 1):
+    def train(self, epochs, print_every, save_results, path):
         lasttime = time.time()
-        for i in range(epoch):
+        results = []
+        for i in range(epochs):
             population = []
             rewards = np.zeros(self.population_size)
             for k in range(self.population_size):
@@ -497,8 +357,23 @@ class Deep_Evolution_Strategy:
                     'iter %d. reward: %f'
                     % (i + 1, self.reward_function(self.weights, return_reward = True, split = "train"))
                 )
+            if save_results == True:
+                results.append(self.reward_function(self.weights, return_reward=True, split="train"))
         print('time taken to train:', time.time() - lasttime, 'seconds')
 
+        print('-----------------')
+
+        if save_results == True:
+            df = pd.DataFrame()
+            df['epochs'] = [i for i in range(0,epochs)]
+            df['rewards'] = results
+
+            if not os.path.exists(path):
+                os.mkdir(path)
+                print("Directory " , path ,  " Created ")
+
+            ts = time.time()
+            df.to_csv(path + '{}_train_rewards.csv'.format(int(ts)), index=False)
 # %%
 
 import time
@@ -514,7 +389,7 @@ class Agent:
     # weights_l = weights_g
 
     def __init__(
-        self, money, limit, close, window_size, skip, num_stocks, num_days, weights
+        self, money, limit, close, window_size, skip, num_stocks, num_days, weights, bs
     ):
         self.window_size = window_size
         self.num_stocks = num_stocks
@@ -524,6 +399,7 @@ class Agent:
         self.initial_money = money
         self.limit = limit
         self.weights = weights
+        self.bs = bs
         self.es = Deep_Evolution_Strategy(
             self.weights,
             self.get_reward,
@@ -532,13 +408,28 @@ class Agent:
             self.LEARNING_RATE,
         )
 
+    def get_path(self,epochs):
+        dir_name = 'E={}_PS={}_S={}_LR={}_sk={}_IM={}_L={}_WS={}/'.format(
+            epochs,
+            self.POPULATION_SIZE,
+            self.SIGMA,
+            self.LEARNING_RATE,
+            self.skip,
+            # self.beta,
+            self.initial_money,
+            self.limit,
+            self.window_size
+        )
+        # This will need to be set per computer
+        return 'D:/GitHub/QuantumResearch/NES_Meta_Trading/results/quantum/' + dir_name
+
     def softmax(self,x):
         """Compute softmax values for each sets of scores in x."""
         e_x = np.exp(x - np.max(x))
         return e_x / (e_x.sum(axis=1) + 0.00001)
 
     def act(self, sequence):
-        decision = predict(np.array(sequence).reshape(self.num_stocks,self.window_size), self.weights)
+        decision = predict(np.array(sequence).reshape(self.num_stocks,self.window_size), self.weights, bs=self.bs)
         # print(decision)
         # print(self.softmax([decision]) * 100)
         return self.softmax(np.array([decision]) * 10)
@@ -638,10 +529,10 @@ class Agent:
             return r1
 
 
-    def fit(self, iterations, checkpoint):
-        self.es.train(iterations, print_every = checkpoint)
+    def fit(self, epochs, checkpoint, save_results):
+        self.es.train(epochs, print_every = checkpoint, save_results=save_results, path=self.get_path(epochs))
 
-    def buy(self, split):
+    def buy(self, split, names, save_results, epochs):
 
         # weight = self.model
         initial_money = self.initial_money
@@ -667,12 +558,14 @@ class Agent:
 
         inv = []
 
+        total_values = []
+        total_returns = []
         for t in range(0, len(close_s[0]) - 1, self.skip):
 
             portfolio = self.act(cur_state)
             next_state = get_state(close, t + 1, self.window_size + 1, num_days, self.num_stocks).reshape(self.num_stocks,self.window_size)
 
-            next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
+            next_inventory, initial_money = self.buy_stock(portfolio, close_s, initial_money, cur_inventory, self.limit, t)
 
             # record the inventory
             inv_list = []
@@ -682,6 +575,11 @@ class Agent:
 
             cur_state = next_state.flatten()
             cur_inventory = next_inventory
+
+            if save_results == True:
+
+                total_values.append(initial_money) #TODO: this might have to be looked at.
+                total_returns.append((initial_money / starting_money - 1) * 100)
 
         rho1 = (initial_money / starting_money - 1) * 100 # rate of returns
 
@@ -696,24 +594,41 @@ class Agent:
             inv_f.append(np.array(inv_d)[:,i])
         inv_f = np.array(inv_f)
 
-        print("Inventory at every timestep: \n ",inv)
-        print(
-            '\ntotal gained %f, total investment %f %%'
-            % (initial_money - starting_money, rho1)
-        )
-        for i in range(len(close_s)):
-            plt.figure(figsize = (20, 10))
-            plt.title(names[i])
-            plt.plot(close_s[i], label = 'true close', c = 'g')
-            plt.plot(
-                close_s[i], 'X', label = 'predict buy', markevery = list(np.where(inv_f[i] > 0)[0]), c = 'b'
+        if save_results == False:
+            print("Inventory at every timestep: \n ",inv)
+            print(
+                '\ntotal gained %f, total investment %f %%'
+                % (initial_money - starting_money, rho1)
             )
-            plt.plot(
-                close_s[i], 'o', label = 'predict sell', markevery = list(np.where(inv_f[i] < 0)[0]), c = 'r'
-            )
-            plt.legend()
-            plt.show()
+            for i in range(len(close_s)):
+                plt.figure(figsize = (20, 10))
+                plt.title(names[i])
+                plt.plot(close_s[i], label = 'true close', c = 'g')
+                plt.plot(
+                    close_s[i], 'X', label = 'predict buy', markevery = list(np.where(inv_f[i] > 0)[0]), c = 'b'
+                )
+                plt.plot(
+                    close_s[i], 'o', label = 'predict sell', markevery = list(np.where(inv_f[i] < 0)[0]), c = 'r'
+                )
+                plt.legend()
+                plt.show()
 
+        if save_results == True:
+            path = self.get_path(epochs)
+
+            df = pd.DataFrame()
+            df['roi'] = total_returns
+            df['returns'] = total_values
+
+            ts = time.time()
+            df.to_csv(path + '{}_test_reward.csv'.format(int(ts)), index=True)
+
+    def save(self, epochs):
+        ''' save the results of the agent to disk '''
+        # User input path = 'results/(train/test)/'
+
+        ts = int(time.time())
+        np.save(self.get_path(epochs) + '{}_model_weights.npy'.format(ts),self.weights)
 # %%
 
 if __name__ == '__main__':
@@ -725,7 +640,7 @@ if __name__ == '__main__':
     warnings.filterwarnings('ignore')
 
     import os
-    os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
+    os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
 
     from updated_NES_google_deterministic import load_data, get_state
 
@@ -746,6 +661,7 @@ if __name__ == '__main__':
         return e_x / (e_x.sum() + 0.00001)
 
     num_layers = 4
+    # weights = 0.05 * np.random.randn(num_layers, 65)
     weights = 0.05 * np.random.randn(num_layers, 10)
     # print(weights)
 
@@ -753,29 +669,29 @@ if __name__ == '__main__':
     # model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = len(names))
     agent = Agent(
         money = 10000,
-        limit = 20,
+        limit = 10,
         close = close,
         window_size = window_size,
         num_stocks = len(names),
         num_days = num_days,
         skip = 1,
         weights = weights,
+        bs = False
     )
 
 
     # In[79]:
 
-<<<<<<< HEAD
-    agent.fit(iterations = 5000, checkpoint = 100)
-=======
-    agent.fit(iterations = 500, checkpoint = 10)
->>>>>>> 1b60f70531a9df4e5a0741abd30f7aefcd62da91
+    epochs = 5
+    agent.fit(epochs = epochs, checkpoint = 1, save_results=True)
+    agent.save(epochs)
+
 
     # Weights are changing...
     # print(agent.weights)
       # In[80]:
 
-    # agent.buy(split="test")
+    agent.buy(split="test", names=names, save_results=True, epochs=epochs)
 
 # In[66]: ######################################################################
 
