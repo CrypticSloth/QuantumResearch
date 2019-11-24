@@ -318,7 +318,8 @@ class Agent:
         return e_x / (e_x.sum(axis=1) + 0.00001)
 
     def act(self, sequence):
-        decision = self.model.predict(np.array(sequence)) / 10000 # Unsure how this fixes the problem of always buying one stock... TODO: Investigate this
+        # print(self.model.predict(np.array(sequence)) / 1000)
+        decision = self.model.predict(np.array(sequence)) / 1000 # Unsure how this fixes the problem of always buying one stock... TODO: Investigate this
         # print("Decision : ", decision)
         # print("Softmax : ", self.softmax(decision))
 
@@ -578,11 +579,11 @@ if __name__ == '__main__':
 
     # In[79]:
     # agent.fit(epochs = args.epochs, checkpoint = args.checkpoint)
-    epochs = 10
-    agent.fit(epochs = epochs, checkpoint = 1, save_results = True)
+    epochs = 200
+    agent.fit(epochs = epochs, checkpoint = 10, save_results = False)
     agent.save(epochs)
 
 
     # In[80]:
 
-    agent.buy(split="test", names=names, save_results=True, epochs=epochs)
+    agent.buy(split="test", names=names, save_results=False, epochs=epochs)

@@ -406,7 +406,7 @@ class Agent:
         return e_x / (e_x.sum(axis=1) + 0.00001)
 
     def act(self, sequence):
-        decision = self.model.predict(np.array(sequence)) / 10000 # Unsure how this fixes the problem of always buying one stock... TODO: Investigate this
+        decision = self.model.predict(np.array(sequence)) / 1000 # Unsure how this fixes the problem of always buying one stock... TODO: Investigate this
 
         return self.softmax(decision)
 
