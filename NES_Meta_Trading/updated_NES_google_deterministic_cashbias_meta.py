@@ -189,7 +189,7 @@ class Deep_Evolution_Strategy:
 
             if (e + 1) % print_every == 0:
                 print(
-                    'Epoch {}, reward: {}'.format(e,np.mean(r))
+                    'Epoch {}, reward: {}'.format(e+1,np.mean(r))
                 )
 
             if save_results == True:
@@ -694,8 +694,8 @@ if __name__ == '__main__':
 
     # Training the meta
     # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
-    epochs = 10
-    agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 2, split=None, save_results = True)
+    epochs = 200
+    agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 10, split=None, save_results = True)
     agent.save(epochs=epochs)
 
     # In[80]:
