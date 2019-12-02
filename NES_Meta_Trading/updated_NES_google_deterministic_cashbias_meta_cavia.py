@@ -17,7 +17,7 @@ import random
 sns.set()
 
 import os
-os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 
 # In[58]:
 
@@ -85,14 +85,14 @@ close.reshape(num_portfolios, num_stocks, num_days)
 
 class Deep_Evolution_Strategy:
     def __init__(
-        self, weights, reward_function, population_size, sigma, learning_rate, theta
+        self, theta, context_params, reward_function, population_size, sigma, learning_rate
     ):
-        self.weights = weights
+        self.theta = theta
+        self.context_params = context_params
         self.reward_function = reward_function
         self.population_size = population_size
         self.sigma = sigma
         self.learning_rate = learning_rate
-        self.theta = theta
 
     def _get_weight_from_population(self, weights, population):
         weights_population = []
@@ -111,10 +111,10 @@ class Deep_Evolution_Strategy:
             results = []
 
         for e in range(epochs):
-            # Initialize each stock theta
-            self.theta_ = []
+
             r = []
 
+            # Inner loop
             for i in range(num_tasks):
 
                 population = []
@@ -122,75 +122,62 @@ class Deep_Evolution_Strategy:
                 # Initialization
                 for k in range(self.population_size):
                     x = []
-                    for w in self.weights:
-                        x.append(np.random.randn(*w.shape))
+                    for t in self.context_params:
+                        x.append(np.random.randn(*t.shape))
                     population.append(x)
 
                 for k in range(self.population_size):
                     weights_population = self._get_weight_from_population(
-                        self.weights, population[k]
+                        self.context_params, population[k]
                     )
-                    rewards[k] = self.reward_function(weights_population,index = i,split=split)
+                    rewards[k] = self.reward_function(self.theta, weights_population, loop='inner', index = i, split=split)
                 rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001) # Normalize the rewards here
 
                 t = []
-                for index, w in enumerate(self.weights):
+                for index, t in enumerate(self.context_params):
                     A = np.array([p[index] for p in population])
                     gradient = np.dot(A.T, rewards).T / (self.population_size * self.sigma) + 0.00001 # This is the shape of the NN layer
-                    self.weights[index] = (
-                        w
+                    self.context_params[index] = (
+                        t
                         + self.learning_rate
-                        * gradient  ###### Our task is to make this line meta by storing each gradient into a global gradient from the MAML paper
+                        * gradient
                     )
 
                     # print(np.shape(gradient))
-                    t.append(self.theta[index] + self.learning_rate * gradient) # This could be wrong
+                    # t.append(self.theta[index] + self.learning_rate * gradient)
 
-                self.theta_.append(t)
+                # rollout test on new data? goes here...
+
+                r.append(self.reward_function(self.theta, self.context_params, loop='inner', index=i, split=split, return_reward=True))
 
 
-                r.append(self.reward_function(self.theta, index=i, split=split, return_reward=True))
+            # Outer theta update
 
-            # # Update the global meta theta that is the average gradient
-            # self.theta.append(np.mean(self.theta_))
-            self.meta_gradient = np.zeros(np.shape(self.theta))
+            # Sample test data
+            # Initialization
+            population = []
+            rewards = np.zeros(self.population_size)
+            for k in range(self.population_size):
+                x = []
+                for t in self.theta:
+                    x.append(np.random.randn(*t.shape))
+                population.append(x)
 
-            # print("Training META  :")
-            for i in range(num_tasks):
-                # Sample test data
-                # Initialization
-                population = []
-                rewards = np.zeros(self.population_size)
-                for k in range(self.population_size):
-                    x = []
-                    for w in self.theta_[i]:
-                        x.append(np.random.randn(*w.shape))
-                    population.append(x)
+            for k in range(self.population_size):
+                weights_population = self._get_weight_from_population(
+                    self.theta, population[k]
+                )
+                rewards[k] = self.reward_function(weights_population, self.context_params, loop='outer', index = i, split=split)
+            rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001)
 
-                for k in range(self.population_size):
-                    weights_population = self._get_weight_from_population(
-                        self.theta_[i], population[k]
-                    )
-                    rewards[k] = self.reward_function(weights_population,index = i,split=split)
-                rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001)
-
-                t = []
-                # Predict value of y using theta_
-                for index, w in enumerate(self.theta_[i]):
-                    A = np.array([p[index] for p in population])
-                    gradient = np.dot(A.T, rewards).T / (self.population_size * self.sigma + 0.00001) # This is the shape of the NN layer
-                    self.theta_[i][index] = (
-                        w
-                        + self.learning_rate
-                        * gradient  ###### Our task is to make this line meta by storing each gradient into a global gradient from the MAML paper
-                    )
-
-                    # Update theta with the meta gradients
-                    t.append(gradient)
-
-                self.meta_gradient = self.meta_gradient + t
-
-            self.theta = self.theta + self.learning_rate * (self.meta_gradient/(num_tasks + .00001))
+            for index, t in enumerate(self.theta):
+                A = np.array([p[index] for p in population])
+                gradient = np.dot(A.T, rewards).T / (self.population_size * self.sigma + 0.00001) # This is the shape of the NN layer
+                self.theta[index] = (
+                    t
+                    + self.learning_rate
+                    * gradient
+                )
 
             if (e + 1) % print_every == 0:
                 print(
@@ -218,16 +205,18 @@ class Deep_Evolution_Strategy:
 # In[64]:
 
 class Model:
-    def __init__(self, input_size, layer_size, output_size):
-        self.weights = [
-            np.random.randn(input_size, layer_size),
-            np.random.randn(layer_size, layer_size),
-            np.random.randn(layer_size,output_size + 1),
-            np.random.randn(1, layer_size),
-        ]
+    def __init__(self, input_size, layer_size, output_size, num_context_params):
+        self.context_params = np.zeros(num_context_params)
+
+        # self.weights = [
+        #     np.random.randn(input_size + num_context_params, layer_size),
+        #     np.random.randn(layer_size, layer_size),
+        #     np.random.randn(layer_size,output_size + 1),
+        #     np.random.randn(1, layer_size),
+        # ]
 
         self.theta = [
-            np.random.randn(input_size, layer_size),
+            np.random.randn(input_size + num_context_params, layer_size),
             np.random.randn(layer_size, layer_size),
             np.random.randn(layer_size,output_size + 1),
             np.random.randn(1, layer_size),
@@ -238,20 +227,27 @@ class Model:
     # For eg, if we have 5 stocks out output will be a column of (1,5) where each row is
     # a percentage of how much of that stock we want to have in our portfolio
     def predict(self, inputs):
-        feed = np.dot(inputs, self.weights[0]) + self.weights[-1]
-        decision = np.dot(feed, self.weights[1])
-        decision = np.dot(decision, self.weights[2])
+        inputs = np.concatenate((inputs[0],self.context_params)) # Concatenate the context params to the inputs
+        feed = np.dot(inputs, self.theta[0]) + self.theta[-1]
+        decision = np.dot(feed, self.theta[1])
+        decision = np.dot(decision, self.theta[2])
         # portfolio = softmax(decision)
         # buy = [0.75]
         # buy = np.dot(feed, self.weights[2])
         # return decision, buy
         return decision
 
-    def get_weights(self):
-        return self.weights
+    def set_context_params(self, context_params):
+        self.context_params = context_params
 
-    def set_weights(self, weights):
-        self.weights = weights
+    def get_context_params(self):
+        return self.context_params
+
+    # def get_weights(self):
+    #     return self.weights
+    #
+    # def set_weights(self, weights):
+    #     self.weights = weights
 
     def get_theta(self):
         return self.theta
@@ -263,99 +259,98 @@ def softmax(x):
     """Compute softmax values for each sets of scores in x."""
     e_x = np.exp(x - np.max(x))
     return e_x / (e_x.sum(axis=1) + 0.00001)
-#
-# def act(model, sequence):
-#     decision = model.predict(np.array(sequence))
-#     return softmax(decision)
-#
-# def buy_stock(portfolio, close_s, money, inventory, limit, t):
-#     """
-#         Function that takes in portfolio weights (percentage of each stock in the entire portfolio),
-#         the current stock prices (close price) and the money we currently have
-#         and calculates the maximum number of stocks we can buy with the weights given in the portfolio.
-#
-#         Inventory is the dictionary containing how many stocks we own.
-#         Limit puts a maximum number of stock we can purchase
-#         t is the current time step
-#
-#         TODO: instead of dealing with cash amounts we should deal with normalized return (Ri - mean_R) / (std_R)
-#     """
-#
-#     c = 0
-#     cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money # reset our inventory into cash
-#
-#     portfolio_money = portfolio[0] * cash # portfolio is an array of an array : [[]]
-#
-#     p = []
-#     for m in portfolio_money:
-#         num_stock = math.floor(m / (close_s[c][t] + 0.00001))
-#         p.append(close_s[c][t])
-#         if num_stock <= limit:
-#             inventory[c] = num_stock
-#         else:
-#             inventory[c] = limit
-#
-#         cash -= (inventory[c] * close_s[c][t])
-#         c += 1
-#
-#     return inventory, cash
-#
-# def stock_value(inventory, money, close_s, t):
-#     """
-#     Calculate current stock value of stock inventory and cash based on timestep t
-#     """
-#     cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money
-#     return cash
 
-# Testing one iteration of the new reward function
-# This assumes we can purchase partial stocks and has no limits
+def act(model, sequence):
+    decision = model.predict(np.array(sequence))
+    return softmax(decision)
 
-# # %%
-# num_days = 30
-# close, names = load_data("dataset/train/",num_days)
-# num_stocks = len(names) # This will need to be used to calculate the iterations and input layer sizes along with num_days
-# num_stocks
-#
-# window_size = 10
-#
-# model = Model(window_size*num_stocks, 500, 3)
-# # model = QuantumModel(num_layers=4)
-#
-# weight = model
-# initial_money = 10000
-# starting_money = initial_money
-#
-# cur_state = get_state(close, 0, window_size + 1, num_days, num_stocks)
-# close_s = close.reshape(num_stocks,int(len(close)/num_stocks))
-# skip = 1
-#
-# # Initialize a dictionary to keep track of which stocks we can buy
-# keys = range(num_stocks)
-# cur_inventory = {key: 0 for key in keys}
-# limit = 5
-#
-# split = "train"
-# if split == "train":
-#     t = close[0:int(len(close)*.7)] # This is a list of list of stock data so this doesnt work
-# if split == "test":
-#     t = close[int(len(close)*.7):-1]
-#
-# # close_s
-# # close_s[:,0:int(len(close_s[0])*.7)]
-# # close_s[:,int(len(close_s[0])*.7):len(close_s[0])]
-#
-# for t in range(0, len(close_s[0]) - 1, skip):
-#
-#     portfolio = act(weight, cur_state)
-#     next_state = get_state(close, t + 1, window_size + 1,num_days,num_stocks).reshape(num_stocks,window_size)
-#
-#     next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, limit, t)
-#
-#     cur_state = next_state.flatten()
-#     cur_inventory = next_inventory
-# ((initial_money - starting_money) / (starting_money + 0.00001)) * 100
-# (initial_money / starting_money - 1) * 100
-# np.log((initial_money + 0.00001) / (starting_money + 0.00001))
+def buy_stock(portfolio, close_s, money, inventory, limit, t):
+    """
+        Function that takes in portfolio weights (percentage of each stock in the entire portfolio),
+        the current stock prices (close price) and the money we currently have
+        and calculates the maximum number of stocks we can buy with the weights given in the portfolio.
+
+        Inventory is the dictionary containing how many stocks we own.
+        Limit puts a maximum number of stock we can purchase
+        t is the current time step
+
+        TODO: instead of dealing with cash amounts we should deal with normalized return (Ri - mean_R) / (std_R)
+    """
+
+    c = 0
+    cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money # reset our inventory into cash
+
+    portfolio_money = portfolio[0] * cash # portfolio is an array of an array : [[]]
+
+    p = []
+    for m in portfolio_money:
+        num_stock = math.floor(m / (close_s[c][t] + 0.00001))
+        p.append(close_s[c][t])
+        if num_stock <= limit:
+            inventory[c] = num_stock
+        else:
+            inventory[c] = limit
+
+        cash -= (inventory[c] * close_s[c][t])
+        c += 1
+
+    return inventory, cash
+
+def stock_value(inventory, money, close_s, t):
+    """
+    Calculate current stock value of stock inventory and cash based on timestep t
+    """
+    cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money
+    return cash
+
+#Testing one iteration of the new reward function
+#This assumes we can purchase partial stocks and has no limits
+
+# %%
+window_size = 10
+num_days = 30
+num_stocks = 5
+num_portfolios = 5
+close = load_data("dataset/train/",num_portfolios, num_stocks, num_days)
+
+model = Model(window_size*num_stocks, 500, 3, 5)
+
+weight = model
+initial_money = 10000
+starting_money = initial_money
+
+cur_state = get_state(close[0], 0, window_size + 1, num_stocks, num_days)
+close_s = close[0].reshape(num_stocks,int(len(close[0])/num_stocks))
+skip = 1
+
+# Initialize a dictionary to keep track of which stocks we can buy
+keys = range(num_stocks)
+cur_inventory = {key: 0 for key in keys}
+limit = 5
+
+split = "train"
+if split == "train":
+    t = close[0:int(len(close)*.7)] # This is a list of list of stock data so this doesnt work
+if split == "test":
+    t = close[int(len(close)*.7):-1]
+
+# close_s
+# close_s[:,0:int(len(close_s[0])*.7)]
+# close_s[:,int(len(close_s[0])*.7):len(close_s[0])]
+
+cur_state
+for t in range(0, len(close_s[0]) - 1, skip):
+
+    portfolio = act(weight, cur_state)
+    next_state = get_state(close, t + 1, window_size + 1,num_days,num_stocks).reshape(num_stocks,window_size)
+
+    next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, limit, t)
+
+    cur_state = next_state.flatten()
+    cur_inventory = next_inventory
+((initial_money - starting_money) / (starting_money + 0.00001)) * 100
+(initial_money / starting_money - 1) * 100
+np.log((initial_money + 0.00001) / (starting_money + 0.00001))
 
 # %%
 
@@ -382,12 +377,12 @@ class Agent:
         self.limit = limit
         self.split = split
         self.es = Deep_Evolution_Strategy(
-            self.model.get_weights(),
+            self.model.get_theta(),
+            self.model.get_context_params(),
             self.get_reward,
             self.POPULATION_SIZE,
             self.SIGMA,
             self.LEARNING_RATE,
-            self.model.get_theta()
         )
 
     def get_path(self,epochs):
@@ -470,7 +465,7 @@ class Agent:
 
             return inventory
 
-    def get_reward(self, weights, index, return_reward=False, split = "train"):
+    def get_reward(self, theta, context_params, loop, index, return_reward=False, split = "train", ):
         '''
             Reward function.
 
@@ -482,7 +477,10 @@ class Agent:
             We could add cost of trading stocks as well to this in the future.
         '''
 
-        self.model.weights = weights
+        if loop == "inner":
+            self.model.context_params = context_params
+        if loop == "outer":
+            self.model.theta = theta
 
         # weight = model
         initial_money = self.initial_money
@@ -680,7 +678,7 @@ if __name__ == '__main__':
     close_s = close.reshape(num_portfolios,num_stocks,num_days)
     len(close_s[0])
 
-    model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
+    model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks, num_context_params = 5)
     agent = Agent(
         model = model,
         money = 10000,
@@ -700,7 +698,7 @@ if __name__ == '__main__':
     # Training the meta
     # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
     epochs = 200
-    agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 10, split=None, save_results = True)
+    agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 5, split=None, save_results = False)
     agent.save(epochs=epochs)
 
     # In[80]:
