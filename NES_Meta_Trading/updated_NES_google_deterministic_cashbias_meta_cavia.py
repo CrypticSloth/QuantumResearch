@@ -17,7 +17,7 @@ import random
 sns.set()
 
 import os
-os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
 
 # In[58]:
 
@@ -114,12 +114,18 @@ class Deep_Evolution_Strategy:
 
             r = []
 
+            cp = []
+
             # Inner loop
             for i in range(num_tasks):
 
                 population = []
                 rewards = np.zeros(self.population_size)
                 # Initialization
+
+                # TODO: reset context params.
+                self.context_params = np.zeros(len(self.context_params))
+
                 for k in range(self.population_size):
                     x = []
                     for t in self.context_params:
@@ -133,7 +139,7 @@ class Deep_Evolution_Strategy:
                     rewards[k] = self.reward_function(self.theta, weights_population, loop='inner', index = i, split=split)
                 rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001) # Normalize the rewards here
 
-                t = []
+                # t = []
                 for index, t in enumerate(self.context_params):
                     A = np.array([p[index] for p in population])
                     gradient = np.dot(A.T, rewards).T / (self.population_size * self.sigma) + 0.00001 # This is the shape of the NN layer
@@ -148,13 +154,14 @@ class Deep_Evolution_Strategy:
 
                 # rollout test on new data? goes here...
 
+                # Save the context params for updating outer theta
+                cp.append(self.context_params)
+
                 r.append(self.reward_function(self.theta, self.context_params, loop='inner', index=i, split=split, return_reward=True))
 
 
             # Outer theta update
 
-            # Sample test data
-            # Initialization
             population = []
             rewards = np.zeros(self.population_size)
             for k in range(self.population_size):
@@ -167,7 +174,8 @@ class Deep_Evolution_Strategy:
                 weights_population = self._get_weight_from_population(
                     self.theta, population[k]
                 )
-                rewards[k] = self.reward_function(weights_population, self.context_params, loop='outer', index = i, split=split)
+                # compute the rewards with the mean of the context params computed above
+                rewards[k] = self.reward_function(weights_population, np.mean(cp), loop='outer', index = i, split=split)
             rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001)
 
             for index, t in enumerate(self.theta):
@@ -260,97 +268,97 @@ def softmax(x):
     e_x = np.exp(x - np.max(x))
     return e_x / (e_x.sum(axis=1) + 0.00001)
 
-def act(model, sequence):
-    decision = model.predict(np.array(sequence))
-    return softmax(decision)
-
-def buy_stock(portfolio, close_s, money, inventory, limit, t):
-    """
-        Function that takes in portfolio weights (percentage of each stock in the entire portfolio),
-        the current stock prices (close price) and the money we currently have
-        and calculates the maximum number of stocks we can buy with the weights given in the portfolio.
-
-        Inventory is the dictionary containing how many stocks we own.
-        Limit puts a maximum number of stock we can purchase
-        t is the current time step
-
-        TODO: instead of dealing with cash amounts we should deal with normalized return (Ri - mean_R) / (std_R)
-    """
-
-    c = 0
-    cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money # reset our inventory into cash
-
-    portfolio_money = portfolio[0] * cash # portfolio is an array of an array : [[]]
-
-    p = []
-    for m in portfolio_money:
-        num_stock = math.floor(m / (close_s[c][t] + 0.00001))
-        p.append(close_s[c][t])
-        if num_stock <= limit:
-            inventory[c] = num_stock
-        else:
-            inventory[c] = limit
-
-        cash -= (inventory[c] * close_s[c][t])
-        c += 1
-
-    return inventory, cash
-
-def stock_value(inventory, money, close_s, t):
-    """
-    Calculate current stock value of stock inventory and cash based on timestep t
-    """
-    cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money
-    return cash
-
-#Testing one iteration of the new reward function
-#This assumes we can purchase partial stocks and has no limits
-
-# %%
-window_size = 10
-num_days = 30
-num_stocks = 5
-num_portfolios = 5
-close = load_data("dataset/train/",num_portfolios, num_stocks, num_days)
-
-model = Model(window_size*num_stocks, 500, 3, 5)
-
-weight = model
-initial_money = 10000
-starting_money = initial_money
-
-cur_state = get_state(close[0], 0, window_size + 1, num_stocks, num_days)
-close_s = close[0].reshape(num_stocks,int(len(close[0])/num_stocks))
-skip = 1
-
-# Initialize a dictionary to keep track of which stocks we can buy
-keys = range(num_stocks)
-cur_inventory = {key: 0 for key in keys}
-limit = 5
-
-split = "train"
-if split == "train":
-    t = close[0:int(len(close)*.7)] # This is a list of list of stock data so this doesnt work
-if split == "test":
-    t = close[int(len(close)*.7):-1]
-
-# close_s
-# close_s[:,0:int(len(close_s[0])*.7)]
-# close_s[:,int(len(close_s[0])*.7):len(close_s[0])]
-
-cur_state
-for t in range(0, len(close_s[0]) - 1, skip):
-
-    portfolio = act(weight, cur_state)
-    next_state = get_state(close, t + 1, window_size + 1,num_days,num_stocks).reshape(num_stocks,window_size)
-
-    next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, limit, t)
-
-    cur_state = next_state.flatten()
-    cur_inventory = next_inventory
-((initial_money - starting_money) / (starting_money + 0.00001)) * 100
-(initial_money / starting_money - 1) * 100
-np.log((initial_money + 0.00001) / (starting_money + 0.00001))
+# def act(model, sequence):
+#     decision = model.predict(np.array(sequence))
+#     return softmax(decision)
+#
+# def buy_stock(portfolio, close_s, money, inventory, limit, t):
+#     """
+#         Function that takes in portfolio weights (percentage of each stock in the entire portfolio),
+#         the current stock prices (close price) and the money we currently have
+#         and calculates the maximum number of stocks we can buy with the weights given in the portfolio.
+#
+#         Inventory is the dictionary containing how many stocks we own.
+#         Limit puts a maximum number of stock we can purchase
+#         t is the current time step
+#
+#         TODO: instead of dealing with cash amounts we should deal with normalized return (Ri - mean_R) / (std_R)
+#     """
+#
+#     c = 0
+#     cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money # reset our inventory into cash
+#
+#     portfolio_money = portfolio[0] * cash # portfolio is an array of an array : [[]]
+#
+#     p = []
+#     for m in portfolio_money:
+#         num_stock = math.floor(m / (close_s[c][t] + 0.00001))
+#         p.append(close_s[c][t])
+#         if num_stock <= limit:
+#             inventory[c] = num_stock
+#         else:
+#             inventory[c] = limit
+#
+#         cash -= (inventory[c] * close_s[c][t])
+#         c += 1
+#
+#     return inventory, cash
+#
+# def stock_value(inventory, money, close_s, t):
+#     """
+#     Calculate current stock value of stock inventory and cash based on timestep t
+#     """
+#     cash = np.sum([close_s[i][t] * inventory[i] for i in range(len(close_s))]) + money
+#     return cash
+#
+# #Testing one iteration of the new reward function
+# #This assumes we can purchase partial stocks and has no limits
+#
+# # %%
+# window_size = 10
+# num_days = 30
+# num_stocks = 5
+# num_portfolios = 5
+# close = load_data("dataset/train/",num_portfolios, num_stocks, num_days)
+#
+# model = Model(window_size*num_stocks, 500, 3, 5)
+#
+# weight = model
+# initial_money = 10000
+# starting_money = initial_money
+#
+# cur_state = get_state(close[0], 0, window_size + 1, num_stocks, num_days)
+# close_s = close[0].reshape(num_stocks,int(len(close[0])/num_stocks))
+# skip = 1
+#
+# # Initialize a dictionary to keep track of which stocks we can buy
+# keys = range(num_stocks)
+# cur_inventory = {key: 0 for key in keys}
+# limit = 5
+#
+# split = "train"
+# if split == "train":
+#     t = close[0:int(len(close)*.7)] # This is a list of list of stock data so this doesnt work
+# if split == "test":
+#     t = close[int(len(close)*.7):-1]
+#
+# # close_s
+# # close_s[:,0:int(len(close_s[0])*.7)]
+# # close_s[:,int(len(close_s[0])*.7):len(close_s[0])]
+#
+# cur_state
+# for t in range(0, len(close_s[0]) - 1, skip):
+#
+#     portfolio = act(weight, cur_state)
+#     next_state = get_state(close, t + 1, window_size + 1,num_days,num_stocks).reshape(num_stocks,window_size)
+#
+#     next_inventory, initial_money = buy_stock(portfolio, close_s, initial_money, cur_inventory, limit, t)
+#
+#     cur_state = next_state.flatten()
+#     cur_inventory = next_inventory
+# ((initial_money - starting_money) / (starting_money + 0.00001)) * 100
+# (initial_money / starting_money - 1) * 100
+# np.log((initial_money + 0.00001) / (starting_money + 0.00001))
 
 # %%
 
