@@ -3,7 +3,7 @@ import pennylane as qml
 from pennylane import numpy as np
 
 # NOTE: 5 wires gives a memory error so 4 seems to be the max
-dev = qml.device("strawberryfields.fock", wires=2, cutoff_dim=7)
+dev = qml.device("strawberryfields.fock", wires=5, cutoff_dim=7)
 
 # num_layers = 4
 # weights = 0.05 * np.random.randn(num_layers, 63)
@@ -421,7 +421,7 @@ class Agent:
             self.window_size
         )
         # This will need to be set per computer
-        return 'D:/GitHub/QuantumResearch/NES_Meta_Trading/results/quantum/' + dir_name
+        return 'C:/GitHub/QuantumResearch/NES_Meta_Trading/results/quantum/' + dir_name
 
     def softmax(self,x):
         """Compute softmax values for each sets of scores in x."""
@@ -640,7 +640,7 @@ if __name__ == '__main__':
     warnings.filterwarnings('ignore')
 
     import os
-    os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
+    os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 
     from updated_NES_google_deterministic import load_data, get_state
 
@@ -661,8 +661,8 @@ if __name__ == '__main__':
         return e_x / (e_x.sum() + 0.00001)
 
     num_layers = 4
-    # weights = 0.05 * np.random.randn(num_layers, 65)
-    weights = 0.05 * np.random.randn(num_layers, 10)
+    weights = 0.05 * np.random.randn(num_layers, 65)
+    # weights = 0.05 * np.random.randn(num_layers, 10)
     # print(weights)
 
 
@@ -676,13 +676,13 @@ if __name__ == '__main__':
         num_days = num_days,
         skip = 1,
         weights = weights,
-        bs = False
+        bs = True
     )
 
 
     # In[79]:
 
-    epochs = 5
+    epochs = 100
     agent.fit(epochs = epochs, checkpoint = 1, save_results=True)
     agent.save(epochs)
 

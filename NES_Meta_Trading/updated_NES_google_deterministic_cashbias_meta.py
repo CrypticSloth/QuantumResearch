@@ -12,7 +12,7 @@ import random
 sns.set()
 
 import os
-os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 
 # In[58]:
 
@@ -398,7 +398,7 @@ class Agent:
             self.window_size
         )
         # This will need to be set per computer
-        return 'D:/GitHub/QuantumResearch/NES_Meta_Trading/results/meta/' + self.split + '/' + dir_name
+        return 'C:/GitHub/QuantumResearch/NES_Meta_Trading/results/meta/' + self.split + '/' + dir_name
 
     def softmax(self, x):
         """Compute softmax values for each sets of scores in x."""
@@ -666,67 +666,68 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', type=int, help='How many iterations to print progress to console.')
     args = parser.parse_args()
 
-    window_size = 10
-    num_days = 30
-    num_stocks = 5
-    num_portfolios = 5
-    close = load_data("dataset/train/",num_portfolios, num_stocks, num_days)
-    np.shape(close)
-    close_s = close.reshape(num_portfolios,num_stocks,num_days)
-    len(close_s[0])
+    for i in range(3):
+        window_size = 10
+        num_days = 90
+        num_stocks = 5
+        num_portfolios = 5
+        close = load_data("dataset/train/",num_portfolios, num_stocks, num_days)
+        np.shape(close)
+        close_s = close.reshape(num_portfolios,num_stocks,num_days)
+        len(close_s[0])
 
-    model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
-    agent = Agent(
-        model = model,
-        money = 10000,
-        limit = 5,
-        close = close,
-        window_size = window_size,
-        num_portfolios = num_portfolios,
-        num_stocks = num_stocks,
-        num_days = num_days,
-        skip = 1,
-        split = "train"
-    )
+        model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
+        agent = Agent(
+            model = model,
+            money = 10000,
+            limit = 5,
+            close = close,
+            window_size = window_size,
+            num_portfolios = num_portfolios,
+            num_stocks = num_stocks,
+            num_days = num_days,
+            skip = 1,
+            split = "train"
+        )
 
 
-    # In[79]:
+        # In[79]:
 
-    # Training the meta
-    # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
-    epochs = 200
-    agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 10, split=None, save_results = True)
-    agent.save(epochs=epochs)
+        # Training the meta
+        # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
+        epochs = 5000
+        agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 100, split=None, save_results = True)
+        agent.save(epochs=epochs)
 
-    # In[80]:
-    # Training the trained meta on one stock with fewer epochs
-    testModel = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
-    testModel.set_weights = model.get_theta
+        # In[80]:
+        # Training the trained meta on one stock with fewer epochs
+        testModel = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
+        testModel.set_weights = model.get_theta
 
-    num_days = 30
-    num_stocks = 5
-    num_portfolios = 1
-    data, names = load_data("dataset/test/", num_portfolios, num_stocks, num_days)
+        num_days = 90
+        num_stocks = 5
+        num_portfolios = 1
+        data, names = load_data("dataset/test/", num_portfolios, num_stocks, num_days)
 
-    # close_s = data.reshape(num_portfolios,num_stocks,num_days)
-    # close_s[0]
+        # close_s = data.reshape(num_portfolios,num_stocks,num_days)
+        # close_s[0]
 
-    agent = Agent(
-        model = model,
-        money = 10000,
-        limit = 5,
-        close = data,
-        window_size = window_size,
-        num_portfolios = num_portfolios,
-        num_stocks = num_stocks,
-        num_days = num_days,
-        skip = 1,
-        split = "test"
-    )
+        agent = Agent(
+            model = model,
+            money = 10000,
+            limit = 5,
+            close = data,
+            window_size = window_size,
+            num_portfolios = num_portfolios,
+            num_stocks = num_stocks,
+            num_days = num_days,
+            skip = 1,
+            split = "test"
+        )
 
-    # Train with a few epochs to test the meta learning
-    epochs = 5
-    agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = True)
-    agent.save(epochs)
+        # Train with a few epochs to test the meta learning
+        epochs = 15
+        agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = True)
+        agent.save(epochs)
 
-    agent.buy(split="test", names=names, save_results=True, epochs=epochs)
+        agent.buy(split="test", names=names, save_results=True, epochs=epochs)
