@@ -595,7 +595,7 @@ class Agent:
             for t in range(0, len(close_s[0]) - 1, self.skip):
 
                 portfolio = self.act(cur_state)
-                next_state = get_state(close, t + 1, self.window_size + 1, self.num_stocks, num_days).reshape(self.num_stocks,self.window_size)
+                next_state = get_state(close, t + 1, self.window_size + 1, self.num_stocks, num_days)
 
                 next_inventory = self.buy_stock(portfolio, close_s, cur_inventory, self.limit, t)
 
@@ -605,7 +605,7 @@ class Agent:
                     inv_list.append(value)
                 inv.append(inv_list[1:])
 
-                cur_state = next_state.flatten()
+                cur_state = next_state
                 cur_inventory = next_inventory
 
                 if save_results == True:
@@ -706,14 +706,14 @@ if __name__ == '__main__':
 
     # Training the meta
     # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
-    epochs = 200
+    epochs = 100
     agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 5, split=None, save_results = False)
     agent.save(epochs=epochs)
 
     # In[80]:
     # Training the trained meta on one stock with fewer epochs
-    testModel = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
-    testModel.set_weights = model.get_theta
+    testModel = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks, num_context_params = 5)
+    testModel.set_theta = model.get_theta
 
     num_days = 30
     num_stocks = 5
@@ -737,8 +737,8 @@ if __name__ == '__main__':
     )
 
     # Train with a few epochs to test the meta learning
-    epochs = 5
-    agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = True)
+    epochs = 20
+    agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = False)
     agent.save(epochs)
 
-    agent.buy(split="test", names=names, save_results=True, epochs=epochs)
+    agent.buy(split="test", names=names, save_results=False, epochs=epochs)
