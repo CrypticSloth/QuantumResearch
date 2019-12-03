@@ -157,6 +157,7 @@ class Deep_Evolution_Strategy:
                 # Save the context params for updating outer theta
                 cp.append(self.context_params)
 
+                # Evaluate the upated context paramters by taking new actions with them and save the results
                 r.append(self.reward_function(self.theta, self.context_params, loop='inner', index=i, split=split, return_reward=True))
 
 
