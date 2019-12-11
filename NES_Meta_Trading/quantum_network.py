@@ -3,7 +3,7 @@ import pennylane as qml
 from pennylane import numpy as np
 
 # NOTE: 5 wires gives a memory error so 4 seems to be the max
-dev = qml.device("strawberryfields.fock", wires=5, cutoff_dim=7)
+dev = qml.device("strawberryfields.fock", wires=3, cutoff_dim=7)
 
 # num_layers = 4
 # weights = 0.05 * np.random.randn(num_layers, 63)
@@ -63,62 +63,62 @@ def layer_bs(w):
     qml.Displacement(w[0], 0.0, wires=0)
     qml.Displacement(w[1], 0.0, wires=1)
     qml.Displacement(w[2], 0.0, wires=2)
-    qml.Displacement(w[3], 0.0, wires=3)
-    qml.Displacement(w[50], 0.0, wires=4)
+    # qml.Displacement(w[3], 0.0, wires=3)
+    # qml.Displacement(w[50], 0.0, wires=4)
 
     qml.Displacement(w[4], w[5], wires=0)
     qml.Displacement(w[6], w[7], wires=1)
     qml.Displacement(w[8], w[9], wires=2)
-    qml.Displacement(w[10], w[11], wires=3)
-    qml.Displacement(w[51], w[52], wires=4)
+    # qml.Displacement(w[10], w[11], wires=3)
+    # qml.Displacement(w[51], w[52], wires=4)
 
     qml.Squeezing(w[12], w[13], wires=0)
     qml.Squeezing(w[14], w[15], wires=1)
     qml.Squeezing(w[16], w[17], wires=2)
-    qml.Squeezing(w[18], w[19], wires=3)
-    qml.Squeezing(w[53], w[54], wires=4)
+    # qml.Squeezing(w[18], w[19], wires=3)
+    # qml.Squeezing(w[53], w[54], wires=4)
 
     qml.Kerr(w[20], wires=0)
     qml.Kerr(w[21], wires=1)
     qml.Kerr(w[22], wires=2)
-    qml.Kerr(w[23], wires=3)
-    qml.Kerr(w[55], wires=4)
+    # qml.Kerr(w[23], wires=3)
+    # qml.Kerr(w[55], wires=4)
 
     qml.Beamsplitter(w[24],0, wires=[0,1])
     qml.Beamsplitter(0,0, wires=[0,1])
     qml.Beamsplitter(w[25],0, wires=[1,2])
     qml.Beamsplitter(0,0, wires=[1,2])
-    qml.Beamsplitter(w[26],0, wires=[2,3])
-    qml.Beamsplitter(0,0, wires=[2,3])
-    qml.Beamsplitter(w[56],0, wires=[3,4])
-    qml.Beamsplitter(0,0, wires=[3,4])
+    # qml.Beamsplitter(w[26],0, wires=[2,3])
+    # qml.Beamsplitter(0,0, wires=[2,3])
+    # qml.Beamsplitter(w[56],0, wires=[3,4])
+    # qml.Beamsplitter(0,0, wires=[3,4])
 
     qml.Displacement(w[27], w[28], wires=0)
     qml.Displacement(w[29], w[30], wires=1)
     qml.Displacement(w[31], w[32], wires=2)
-    qml.Displacement(w[33], w[34], wires=3)
-    qml.Displacement(w[57], w[58], wires=4)
+    # qml.Displacement(w[33], w[34], wires=3)
+    # qml.Displacement(w[57], w[58], wires=4)
 
     qml.Squeezing(w[35], w[36], wires=0)
     qml.Squeezing(w[37], w[38], wires=1)
     qml.Squeezing(w[39], w[40], wires=2)
-    qml.Squeezing(w[41], w[42], wires=3)
-    qml.Squeezing(w[59], w[60], wires=4)
+    # qml.Squeezing(w[41], w[42], wires=3)
+    # qml.Squeezing(w[59], w[60], wires=4)
 
     qml.Kerr(w[43], wires=0)
     qml.Kerr(w[44], wires=1)
     qml.Kerr(w[45], wires=2)
-    qml.Kerr(w[46], wires=3)
-    qml.Kerr(w[61], wires=4)
+    # qml.Kerr(w[46], wires=3)
+    # qml.Kerr(w[61], wires=4)
 
     qml.Beamsplitter(w[47],0, wires=[0,1])
     qml.Beamsplitter(0,0, wires=[0,1])
     qml.Beamsplitter(w[48],0, wires=[1,2])
     qml.Beamsplitter(0,0, wires=[1,2])
-    qml.Beamsplitter(w[49],0, wires=[2,3])
-    qml.Beamsplitter(0,0, wires=[2,3])
-    qml.Beamsplitter(w[62],0, wires=[3,4])
-    qml.Beamsplitter(0,0, wires=[3,4])
+    # qml.Beamsplitter(w[49],0, wires=[2,3])
+    # qml.Beamsplitter(0,0, wires=[2,3])
+    # qml.Beamsplitter(w[62],0, wires=[3,4])
+    # qml.Beamsplitter(0,0, wires=[3,4])
 
 @qml.qnode(dev)
 def quantum_neural_net(weights, x=None, bs=False):
@@ -132,7 +132,7 @@ def quantum_neural_net(weights, x=None, bs=False):
     # Encode input x into quantum state
     qml.Displacement(x[0], 0.0, wires=0)
     qml.Displacement(x[1], 0.0, wires=1)
-    # qml.Displacement(x[2], 0.0, wires=2)
+    qml.Displacement(x[2], 0.0, wires=2)
     # qml.Displacement(x[3], 0.0, wires=3)
     # qml.Displacement(x[4], 0.0, wires=4)
 
@@ -145,8 +145,8 @@ def quantum_neural_net(weights, x=None, bs=False):
             layer(w)
 
     return [qml.expval(qml.X(0)),
-            qml.expval(qml.X(1))]
-            # qml.expval(qml.X(2)),
+            qml.expval(qml.X(1)),
+            qml.expval(qml.X(2))]
             # qml.expval(qml.X(3)),
             # qml.expval(qml.X(4))]
 
@@ -409,7 +409,7 @@ class Agent:
         )
 
     def get_path(self,epochs):
-        dir_name = 'E={}_PS={}_S={}_LR={}_sk={}_IM={}_L={}_WS={}/'.format(
+        dir_name = 'E={}_PS={}_S={}_LR={}_sk={}_IM={}_L={}_WS={}_ND={}/'.format(
             epochs,
             self.POPULATION_SIZE,
             self.SIGMA,
@@ -418,7 +418,8 @@ class Agent:
             # self.beta,
             self.initial_money,
             self.limit,
-            self.window_size
+            self.window_size,
+            self.num_days
         )
         # This will need to be set per computer
         return 'C:/GitHub/QuantumResearch/NES_Meta_Trading/results/quantum/' + dir_name
@@ -644,47 +645,48 @@ if __name__ == '__main__':
 
     from updated_NES_google_deterministic import load_data, get_state
 
-    num_days = 30
-    close, names = load_data("dataset/train_q/",num_days)
-    num_stocks = len(names) # This will need to be used to calculate the iterations and input layer sizes along with num_days
-    num_stocks
-    np.shape(close)
+    for i in range(5):
+        num_days = 60
+        close, names = load_data("dataset/train_q/",num_days)
+        num_stocks = len(names) # This will need to be used to calculate the iterations and input layer sizes along with num_days
+        num_stocks
+        np.shape(close)
 
-    window_size = 1
-    cur_state = get_state(close, 10, window_size + 1, num_days, num_stocks)
+        window_size = 1
+        cur_state = get_state(close, 10, window_size + 1, num_days, num_stocks)
 
-    # %%
+        # %%
 
-    def softmax(x):
-        """Compute softmax values for each sets of scores in x."""
-        e_x = np.exp(x - np.max(x))
-        return e_x / (e_x.sum() + 0.00001)
+        def softmax(x):
+            """Compute softmax values for each sets of scores in x."""
+            e_x = np.exp(x - np.max(x))
+            return e_x / (e_x.sum() + 0.00001)
 
-    num_layers = 4
-    weights = 0.05 * np.random.randn(num_layers, 65)
-    # weights = 0.05 * np.random.randn(num_layers, 10)
-    # print(weights)
-
-
-    # model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = len(names))
-    agent = Agent(
-        money = 10000,
-        limit = 10,
-        close = close,
-        window_size = window_size,
-        num_stocks = len(names),
-        num_days = num_days,
-        skip = 1,
-        weights = weights,
-        bs = True
-    )
+        num_layers = 4
+        weights = 0.05 * np.random.randn(num_layers, 65)
+        # weights = 0.05 * np.random.randn(num_layers, 10)
+        # print(weights)
 
 
-    # In[79]:
+        # model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = len(names))
+        agent = Agent(
+            money = 10000,
+            limit = 10,
+            close = close,
+            window_size = window_size,
+            num_stocks = len(names),
+            num_days = num_days,
+            skip = 1,
+            weights = weights,
+            bs = True
+        )
 
-    epochs = 100
-    agent.fit(epochs = epochs, checkpoint = 1, save_results=True)
-    agent.save(epochs)
+
+        # In[79]:
+
+        epochs = 1000
+        agent.fit(epochs = epochs, checkpoint = 1, save_results=True)
+        agent.save(epochs)
 
 
     # Weights are changing...
