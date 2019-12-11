@@ -60,7 +60,7 @@ def wrangle_data(path, sample = None):
     return df
 
 df = wrangle_data('D:/GitHub/QuantumResearch/NES_Meta_Trading/results/quantum/E=1000_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=1_ND=60', sample = 'train')
-df
+# df
 
 def sigmoid(x):
     return (2 / (1 + np.exp(-x))) - 1
@@ -77,22 +77,22 @@ df
 # Load in the stock data to simulate what would happen without trading actions
 
 # TODO Figure out how to do this with portfolios...
-data, names = load_data("D:/GitHub/QuantumResearch/NES_Meta_Trading/dataset/test",90)
-data = data[0][int(len(data[0])*.7):-1]
-len(data)
+# data, names = load_data("D:/GitHub/QuantumResearch/NES_Meta_Trading/dataset/test",90)
+# data = data[0][int(len(data[0])*.7):-1]
+# len(data)
+#
+# data = (np.array(data) - data[0]) * 10 + 10000
+# data
+# # df['market_value'] = data[:-2]
 
-data = (np.array(data) - data[0]) * 10 + 10000
-data
-df['market_value'] = data[:-2]
-df
 # %%
-
+df = df
 plt.plot(df.index, df.Mean) # For plotting training graphs
-plt.plot(df.market_value) # For plotting testing vs market value
+# plt.plot(df.market_value) # For plotting testing vs market value
 
 plt.fill_between(df.index, df.Mean - df.STD, df.Mean + df.STD, color = (0.1,0.2,0.7,0.3))
 # plt.show()
-plt.title('MAML Market Test')
-plt.savefig('D:/GitHub/QuantumResearch/NES_Meta_Trading/graphics/MAML_10iters_CCData_marketTest.png')
+plt.title('Quantum Training')
+plt.savefig('D:/GitHub/QuantumResearch/NES_Meta_Trading/graphics/Quantum_10iters_CCData_training.png')
 
 # %%
