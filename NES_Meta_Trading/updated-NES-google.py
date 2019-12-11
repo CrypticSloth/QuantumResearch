@@ -412,7 +412,7 @@ agent = Agent(
 # In[79]:
 
 
-agent.fit(iterations = 500, checkpoint = 10)
+agent.fit(iterations = 100, checkpoint = 10)
 
 
 # In[80]:
