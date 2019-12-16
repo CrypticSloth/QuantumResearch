@@ -685,7 +685,7 @@ if __name__ == '__main__':
         # In[79]:
 
         epochs = 1000
-        agent.fit(epochs = epochs, checkpoint = 1, save_results=True)
+        agent.fit(epochs = epochs, checkpoint = 10, save_results=True)
         agent.save(epochs)
 
 
