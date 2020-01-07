@@ -679,9 +679,9 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', type=int, help='How many iterations to print progress to console.')
     args = parser.parse_args()
 
-    for i in range(2):
+    for i in range(3):
         window_size = 10
-        num_days = 90
+        num_days = 360
         num_stocks = 5
         num_portfolios = 5
         close = load_data("dataset/train/",num_portfolios, num_stocks, num_days)
@@ -709,7 +709,7 @@ if __name__ == '__main__':
         # Training the meta
         # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
         epochs = 5000
-        agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 100, split=None, save_results = True)
+        agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 100, split="train", save_results = True)
         agent.save(epochs=epochs)
 
         # In[80]:
@@ -717,7 +717,7 @@ if __name__ == '__main__':
         testModel = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks, num_context_params = 5)
         testModel.set_theta = model.get_theta
 
-        num_days = 90
+        num_days = 360
         num_stocks = 5
         num_portfolios = 1
         data, names = load_data("dataset/test/", num_portfolios, num_stocks, num_days)

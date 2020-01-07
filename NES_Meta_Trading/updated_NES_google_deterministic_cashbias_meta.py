@@ -386,7 +386,7 @@ class Agent:
         )
 
     def get_path(self,epochs):
-        dir_name = 'E={}_PS={}_S={}_LR={}_sk={}_IM={}_L={}_WS={}/'.format(
+        dir_name = 'E={}_PS={}_S={}_LR={}_sk={}_IM={}_L={}_WS={}_ND={}/'.format(
             epochs,
             self.POPULATION_SIZE,
             self.SIGMA,
@@ -395,10 +395,11 @@ class Agent:
             # self.beta,
             self.initial_money,
             self.limit,
-            self.window_size
+            self.window_size,
+            self.num_days
         )
         # This will need to be set per computer
-        return 'C:/GitHub/QuantumResearch/NES_Meta_Trading/results/meta/' + self.split + '/' + dir_name
+        return 'C:/GitHub/QuantumResearch/NES_Meta_Trading/results/maml/' + self.split + '/' + dir_name
 
     def softmax(self, x):
         """Compute softmax values for each sets of scores in x."""
@@ -668,7 +669,7 @@ if __name__ == '__main__':
 
     for i in range(3):
         window_size = 10
-        num_days = 90
+        num_days = 360
         num_stocks = 5
         num_portfolios = 5
         close = load_data("dataset/train/",num_portfolios, num_stocks, num_days)
@@ -696,7 +697,7 @@ if __name__ == '__main__':
         # Training the meta
         # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
         epochs = 5000
-        agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 100, split=None, save_results = True)
+        agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 100, split="train", save_results = True)
         agent.save(epochs=epochs)
 
         # In[80]:
@@ -704,7 +705,7 @@ if __name__ == '__main__':
         testModel = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
         testModel.set_weights = model.get_theta
 
-        num_days = 90
+        num_days = 360
         num_stocks = 5
         num_portfolios = 1
         data, names = load_data("dataset/test/", num_portfolios, num_stocks, num_days)
@@ -726,7 +727,7 @@ if __name__ == '__main__':
         )
 
         # Train with a few epochs to test the meta learning
-        epochs = 15
+        epochs = 20
         agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = True)
         agent.save(epochs)
 
