@@ -11,8 +11,143 @@ import pandas as pd
 import random
 sns.set()
 
+import warnings
+warnings.filterwarnings('ignore') # Ignore quantum warnings
+
 import os
 os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
+
+
+## Quantum initialization
+
+import pennylane as qml
+from pennylane import numpy as np
+
+# import os
+# from updated_NES_google_deterministic import load_data, get_state
+# os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
+# close, names = load_data("dataset/train_q/",5)
+num_stocks = 2
+num_wires = num_stocks + 1 # +1 for the cash bias layer
+# NOTE: 5 wires gives a memory error so 4 seems to be the max
+dev = qml.device("strawberryfields.fock", wires=num_wires, cutoff_dim=7)
+
+# %%
+
+# %%
+def layer(w, num_wires):
+    '''
+        For each weight (w[i]) apply the quantum gates to it.
+
+        Saves the updated weights to the quantum device.
+
+        w: a list of scalar weights (of length 5)
+    '''
+
+    # Matrix multiplication of input layer
+    for i in range(num_wires):
+        qml.Rotation(w[i], wires=i)
+
+    for i in range(num_wires):
+        qml.Squeezing(w[i + num_wires], 0.0, wires=i)
+
+    for i in range(num_wires):
+        qml.Rotation(w[i + (num_wires*2)], wires=i)
+
+    # Bias
+    for i in range(num_wires):
+        qml.Displacement(w[i + (num_wires*3)], 0.0, wires=i)
+
+        # Element-wise nonlinear transformation
+    for i in range(num_wires):
+        qml.Kerr(w[i + (num_wires*4)], wires=i)
+
+
+def layer_bs(w, num_wires):
+    '''
+        For each weight (w[i]) apply the quantum gates to it.
+
+        Saves the updated weights to the quantum device.
+
+        w: a list of scalar weights (of length 5)
+    '''
+
+    for i in range(num_wires):
+        qml.Displacement(w[i], 0.0, wires=i)
+
+    for i in range(num_wires):
+        qml.Displacement(w[i + num_wires], w[i + (num_wires*2)], wires=i)
+
+    for i in range(num_wires):
+        qml.Squeezing(w[i + (num_wires*3)], w[i + (num_wires*4)], wires=i)
+
+    for i in range(num_wires):
+        qml.Kerr(w[i + (num_wires*5)], wires=i)
+
+    for i in range(num_wires - 1):
+        qml.Beamsplitter(w[i + (num_wires*6)],0, wires=[i,i+1])
+        qml.Beamsplitter(0,0, wires=[i,i+1])
+
+    for i in range(num_wires):
+        qml.Displacement(w[i + (num_wires*7)], w[i + (num_wires*8)], wires=i)
+
+    for i in range(num_wires):
+        qml.Squeezing(w[i + (num_wires*9)], w[i + (num_wires*10)], wires=i)
+
+    for i in range(num_wires):
+        qml.Kerr(w[i + (num_wires*11)], wires=i)
+
+    for i in range(num_wires - 1):
+        qml.Beamsplitter(w[i + (num_wires*12)],0, wires=[i,i+1])
+        qml.Beamsplitter(0,0, wires=[i,i+1])
+
+
+@qml.qnode(dev)
+def quantum_neural_net(weights, x=None, bs=False, num_wires=num_wires):
+    '''
+        For each layer, apply the inputs to the gates to update the weights
+
+        weights: list of lists of scalar weights (of length 5)
+        x: list of stock closing values for 5 stocks
+    '''
+
+    # Encode input x into quantum state
+    for i in range(num_wires-1): # have num_wires-1 worth of data because of the added cash bias layer (which is on the first wire)
+        qml.Displacement(x[i], 0.0, wires=i+1) # Skip over the first wire (the cash bias wire) and apply the data to the ones after that wire
+
+
+    # "layer" subcircuits
+    if bs == True:
+        for w in weights:
+            layer_bs(w, num_wires)
+    else:
+        for w in weights:
+            layer(w, num_wires)
+
+    output = []
+    for i in range(num_wires):
+        output.append(qml.expval(qml.X(i)))
+
+    return output
+
+def predict(inputs, weights, bs=False, num_wires=num_wires):
+    '''
+        Loop through each of the training data and apply it to the quantum network to get a prediction for each value.
+
+        Will need to somehow make the QNN shape the values to output 5 values for the softmax function. Not sure how to do this since the network only updates with scalar values and the output is the size of the number of inputs.
+    '''
+
+    # preds = [quantum_neural_net(weights, x=x, bs=bs)
+    #         for y in np.array(inputs).T
+    #         for x in [y]]
+
+    # preds = [quantum_neural_net(weights, x=x, bs=False, num_wires=num_wires) for x in inputs.T]
+    preds = np.array([quantum_neural_net(weights, x=x ,bs=bs, num_wires=num_wires) for x in inputs.T])
+    # print("P: ", preds)
+    # print("Ps: ", [np.sum(p) for p in np.array(preds).T] )
+
+    # return [np.sum(p) for p in np.array(preds).T] # I feel that this could be wrong
+    return preds
 
 # In[58]:
 
@@ -212,47 +347,47 @@ class Deep_Evolution_Strategy:
 
 # In[64]:
 
-class Model:
-    def __init__(self, input_size, layer_size, output_size):
-        self.weights = [
-            np.random.randn(input_size, layer_size),
-            np.random.randn(layer_size, layer_size),
-            np.random.randn(layer_size,output_size + 1),
-            np.random.randn(1, layer_size),
-        ]
-
-        self.theta = [
-            np.random.randn(input_size, layer_size),
-            np.random.randn(layer_size, layer_size),
-            np.random.randn(layer_size,output_size + 1),
-            np.random.randn(1, layer_size),
-        ]
-
-
-    # To make this deterministic, out ouput is going to be weights for each stock we have
-    # For eg, if we have 5 stocks out output will be a column of (1,5) where each row is
-    # a percentage of how much of that stock we want to have in our portfolio
-    def predict(self, inputs):
-        feed = np.dot(inputs, self.weights[0]) + self.weights[-1]
-        decision = np.dot(feed, self.weights[1])
-        decision = np.dot(decision, self.weights[2])
-        # portfolio = softmax(decision)
-        # buy = [0.75]
-        # buy = np.dot(feed, self.weights[2])
-        # return decision, buy
-        return decision
-
-    def get_weights(self):
-        return self.weights
-
-    def set_weights(self, weights):
-        self.weights = weights
-
-    def get_theta(self):
-        return self.theta
-
-    def set_theta(self, theta):
-        self.theta = theta
+# class Model:
+#     def __init__(self, input_size, layer_size, output_size):
+#         self.weights = [
+#             np.random.randn(input_size, layer_size),
+#             np.random.randn(layer_size, layer_size),
+#             np.random.randn(layer_size,output_size + 1),
+#             np.random.randn(1, layer_size),
+#         ]
+#
+#         self.theta = [
+#             np.random.randn(input_size, layer_size),
+#             np.random.randn(layer_size, layer_size),
+#             np.random.randn(layer_size,output_size + 1),
+#             np.random.randn(1, layer_size),
+#         ]
+#
+#
+#     # To make this deterministic, out ouput is going to be weights for each stock we have
+#     # For eg, if we have 5 stocks out output will be a column of (1,5) where each row is
+#     # a percentage of how much of that stock we want to have in our portfolio
+#     def predict(self, inputs):
+#         feed = np.dot(inputs, self.weights[0]) + self.weights[-1]
+#         decision = np.dot(feed, self.weights[1])
+#         decision = np.dot(decision, self.weights[2])
+#         # portfolio = softmax(decision)
+#         # buy = [0.75]
+#         # buy = np.dot(feed, self.weights[2])
+#         # return decision, buy
+#         return decision
+#
+#     def get_weights(self):
+#         return self.weights
+#
+#     def set_weights(self, weights):
+#         self.weights = weights
+#
+#     def get_theta(self):
+#         return self.theta
+#
+#     def set_theta(self, theta):
+#         self.theta = theta
 
 def softmax(x):
     """Compute softmax values for each sets of scores in x."""
@@ -364,7 +499,7 @@ class Agent:
     LEARNING_RATE = 0.03
 
     def __init__(
-        self, model, money, limit, close, window_size, skip, num_portfolios, num_stocks, num_days, split
+        self, money, limit, close, window_size, skip, num_portfolios, num_stocks, num_days, split, weights, theta, bs
     ):
         self.window_size = window_size
         self.num_portfolios = num_portfolios
@@ -372,17 +507,19 @@ class Agent:
         self.num_days = num_days
         self.skip = skip
         self.close = close
-        self.model = model
         self.initial_money = money
         self.limit = limit
         self.split = split
+        self.weights = weights
+        self.theta = theta
+        self.bs = bs
         self.es = Deep_Evolution_Strategy(
-            self.model.get_weights(),
+            self.weights,
             self.get_reward,
             self.POPULATION_SIZE,
             self.SIGMA,
             self.LEARNING_RATE,
-            self.model.get_theta()
+            self.theta,
         )
 
     def get_path(self,epochs):
@@ -399,7 +536,7 @@ class Agent:
             self.num_days
         )
         # This will need to be set per computer
-        return 'C:/GitHub/QuantumResearch/NES_Meta_Trading/results/maml/' + self.split + '/' + dir_name
+        return 'C:/GitHub/QuantumResearch/NES_Meta_Trading/results/maml_quantum/' + self.split + '/' + dir_name
 
     def softmax(self, x):
         """Compute softmax values for each sets of scores in x."""
@@ -407,9 +544,14 @@ class Agent:
         return e_x / (e_x.sum(axis=1) + 0.00001)
 
     def act(self, sequence):
-        decision = self.model.predict(np.array(sequence)) / 1000 # Unsure how this fixes the problem of always buying one stock... TODO: Investigate this
+        decision = predict(np.array(sequence).reshape(self.num_stocks,self.window_size), self.weights, bs=self.bs, num_wires=self.num_stocks+1) # num_wires = num_stocks + 1 becuase we need to add the cash bias layer
+        # print(decision)
+        # print(self.softmax([decision]) * 100)
+        return self.softmax(np.array(decision))
 
-        return self.softmax(decision)
+        # decision = predict(np.array(sequence)) / 1000 # Unsure how this fixes the problem of always buying one stock... TODO: Investigate this
+        #
+        # return self.softmax(decision)
 
     def buy_stock(self, portfolio, close_s, inventory, limit, t):
         """
@@ -442,7 +584,7 @@ class Agent:
 
             return inventory
 
-        else:
+        else: # TODO: Examine this to be sure this is correct.
 
             total_asset_value = np.sum([close_s[i][t] * inventory[i+1] for i in range(self.num_stocks)]) + inventory[0] # reset our inventory into cash (keeping current cash separate)
 
@@ -478,7 +620,7 @@ class Agent:
             We could add cost of trading stocks as well to this in the future.
         '''
 
-        self.model.weights = weights
+        self.weights = weights
 
         # weight = model
         initial_money = self.initial_money
@@ -512,6 +654,7 @@ class Agent:
         for t in range(0, num_days - 1, self.skip):
 
             portfolio = self.act(cur_state)
+            # print(portfolio)
             next_state = get_state(close, t + 1, self.window_size + 1, self.num_stocks, num_days)
 
             next_inventory = self.buy_stock(portfolio, close_s, cur_inventory, self.limit, t)
@@ -655,7 +798,7 @@ class Agent:
         # User input path = 'results/(train/test)/'
 
         ts = int(time.time())
-        np.save(self.get_path(epochs) + '{}_model_weights.npy'.format(ts),model.get_theta())
+        np.save(self.get_path(epochs) + '{}_model_weights.npy'.format(ts),self.theta)
 
 # In[78]:
 
@@ -667,19 +810,31 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', type=int, help='How many iterations to print progress to console.')
     args = parser.parse_args()
 
-    for i in range(3):
-        window_size = 10
-        num_days = 360
-        num_stocks = 5
-        num_portfolios = 5
+    for i in range(1):
+        # Hyper params
+        window_size = 1 # Needs to be one for quantum training
+        num_days = 15
+        num_stocks = 2
+        num_portfolios = 2
+        bs = False
+
         close = load_data("dataset/train/",num_portfolios, num_stocks, num_days)
         np.shape(close)
         close_s = close.reshape(num_portfolios,num_stocks,num_days)
         len(close_s[0])
 
-        model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
+        # model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
+
+        # Initialize the weights
+        num_layers = 4
+        if bs == False:
+            weights = 0.05 * np.random.randn(num_layers, num_wires*5)
+            theta = 0.05 * np.random.randn(num_layers, num_wires*5)
+        if bs == True:
+            weights = 0.05 * np.random.randn(num_layers, num_wires*13)
+            theta = 0.05 * np.random.randn(num_layers, num_wires*13)
+
         agent = Agent(
-            model = model,
             money = 10000,
             limit = 5,
             close = close,
@@ -688,7 +843,10 @@ if __name__ == '__main__':
             num_stocks = num_stocks,
             num_days = num_days,
             skip = 1,
-            split = "train"
+            split = "train",
+            weights = weights,
+            theta = theta,
+            bs = bs
         )
 
 
@@ -696,18 +854,26 @@ if __name__ == '__main__':
 
         # Training the meta
         # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
-        epochs = 5000
-        agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 100, split="train", save_results = True)
+        epochs = 20
+        agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = True)
         agent.save(epochs=epochs)
 
         # In[80]:
         # Training the trained meta on one stock with fewer epochs
-        testModel = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
-        testModel.set_weights = model.get_theta
+        # testModel = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = num_stocks)
+        # testModel.set_weights = model.get_theta
 
-        num_days = 360
-        num_stocks = 5
-        num_portfolios = 1
+        # Initialize the test weights
+        if bs == False:
+            weights = 0.05 * np.random.randn(num_layers, num_wires*5)
+            theta = agent.theta
+        if bs == True:
+            weights = 0.05 * np.random.randn(num_layers, num_wires*13)
+            theta = agent.theta
+
+        num_days = 15
+        num_stocks = 3
+        num_portfolios = 2
         data, names = load_data("dataset/test/", num_portfolios, num_stocks, num_days)
 
         # close_s = data.reshape(num_portfolios,num_stocks,num_days)
@@ -723,11 +889,14 @@ if __name__ == '__main__':
             num_stocks = num_stocks,
             num_days = num_days,
             skip = 1,
-            split = "test"
+            split = "test",
+            weights = weights,
+            theta = theta,
+            bs = bs
         )
 
         # Train with a few epochs to test the meta learning
-        epochs = 20
+        epochs = 5
         agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = True)
         agent.save(epochs)
 
