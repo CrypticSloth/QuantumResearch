@@ -27,7 +27,7 @@ from pennylane import numpy as np
 # from updated_NES_google_deterministic import load_data, get_state
 # os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 # close, names = load_data("dataset/train_q/",5)
-num_stocks = 2
+num_stocks = 3
 num_wires = num_stocks + 1 # +1 for the cash bias layer
 # NOTE: 5 wires gives a memory error so 4 seems to be the max
 dev = qml.device("strawberryfields.fock", wires=num_wires, cutoff_dim=7)
@@ -836,7 +836,7 @@ if __name__ == '__main__':
 
         agent = Agent(
             money = 10000,
-            limit = 5,
+            limit = None,
             close = close,
             window_size = window_size,
             num_portfolios = num_portfolios,
