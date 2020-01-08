@@ -11,7 +11,7 @@ import pandas as pd
 sns.set()
 
 import os
-os.chdir("D:/Github/QuantumResearch/NES_Meta_Trading/")
+os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 
 # In[58]:
 
@@ -310,7 +310,7 @@ class Agent:
             self.window_size
         )
         # This will need to be set per computer
-        return 'D:/GitHub/QuantumResearch/NES_Meta_Trading/results/base/' + dir_name
+        return 'C:/GitHub/QuantumResearch/NES_Meta_Trading/results/base/' + dir_name
 
     def softmax(self, x):
         """Compute softmax values for each sets of scores in x."""
@@ -568,7 +568,7 @@ if __name__ == '__main__':
     agent = Agent(
         model = model,
         money = 10000,
-        limit = 5,
+        limit = 10,
         close = close,
         window_size = window_size,
         num_stocks = len(names),
