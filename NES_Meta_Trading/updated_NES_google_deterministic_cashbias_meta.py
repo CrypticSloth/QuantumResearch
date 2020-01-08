@@ -217,7 +217,7 @@ class Model:
         self.weights = [
             np.random.randn(input_size, layer_size),
             np.random.randn(layer_size, layer_size),
-            np.random.randn(layer_size,output_size + 1),
+            np.random.randn(layer_size,output_size + 1), # +1 to add the cash bias
             np.random.randn(1, layer_size),
         ]
 
