@@ -497,7 +497,7 @@ class Agent:
         decision = predict(np.array(sequence).reshape(self.num_stocks,self.window_size), self.weights, bs=self.bs, num_wires=self.num_stocks)
         # print(decision)
         # print(self.softmax([decision]) * 100)
-        return self.softmax(np.array([decision]) * 10)
+        return self.softmax(np.array(decision))
 
     def buy_stock(self, portfolio, close_s, money, inventory, limit, t):
         """
@@ -520,7 +520,7 @@ class Agent:
 
         p = []
         for m in portfolio_money:
-            num_stock = self.num_stocks
+            num_stock = math.floor(m / (close_s[c][t] + 0.000001))
             p.append(close_s[c][t])
             if num_stock <= limit:
                 inventory[c] = num_stock
@@ -710,7 +710,7 @@ if __name__ == '__main__':
     from updated_NES_google_deterministic import load_data, get_state
 
     for i in range(1):
-        num_days = 60
+        num_days = 15
         close, names = load_data("dataset/train_q/",num_days)
         num_stocks = len(names) # This will need to be used to calculate the iterations and input layer sizes along with num_days
         num_wires = num_stocks
@@ -740,7 +740,7 @@ if __name__ == '__main__':
         # model = Model(input_size = window_size*num_stocks, layer_size = 500, output_size = len(names))
         agent = Agent(
             money = 10000,
-            limit = 10,
+            limit = 5,
             close = close,
             window_size = window_size,
             num_stocks = len(names),
@@ -752,7 +752,7 @@ if __name__ == '__main__':
 
         # In[79]:
         epochs = 50
-        agent.fit(epochs = epochs, checkpoint = 2, save_results=True)
+        agent.fit(epochs = epochs, checkpoint = 1, save_results=True)
         agent.save(epochs)
 
 
