@@ -739,7 +739,7 @@ if __name__ == '__main__':
         )
 
         # Train with a few epochs to test the meta learning
-        epochs = 15
+        epochs = 20
         agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = True)
         agent.save(epochs)
 
