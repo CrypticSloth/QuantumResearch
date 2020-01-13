@@ -30,7 +30,7 @@ from pennylane import numpy as np
 num_stocks = 2
 num_wires = (num_stocks * 2) + 1 # *2 for the cavia context params (one for each stock) and +1 for the cash bias layer
 # NOTE: 5 wires gives a memory error so 4 seems to be the max
-dev = qml.device("strawberryfields.fock", wires=num_wires, cutoff_dim=7)
+dev = qml.device("strawberryfields.fock", wires=num_wires, cutoff_dim=5)
 
 # %%
 
@@ -817,10 +817,10 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', type=int, help='How many iterations to print progress to console.')
     args = parser.parse_args()
 
-    for i in range(1):
+    for i in range(4):
         # Hyper params
         window_size = 1 # Needs to be one for quantum training
-        num_days = 15
+        num_days = 30
         num_stocks = 2
         num_portfolios = 2
         bs = False
@@ -861,7 +861,7 @@ if __name__ == '__main__':
 
         # Training the meta
         # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
-        epochs = 15
+        epochs = 50
         agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = True)
         agent.save(epochs=epochs)
 
@@ -876,10 +876,10 @@ if __name__ == '__main__':
         if bs == True:
             theta = agent.theta
 
-        num_days = 30
+        num_days = 50
         num_stocks = 2
-        num_portfolios = 2
-        data, names = load_data("dataset/test/", num_portfolios, num_stocks, num_days)
+        num_portfolios = 1
+        close, names = load_data("dataset/test_cavia/", num_portfolios, num_stocks, num_days)
 
         num_context_params = num_stocks
         context_params = np.zeros(num_context_params)
@@ -887,10 +887,9 @@ if __name__ == '__main__':
         # close_s[0]
 
         agent = Agent(
-            model = model,
             money = 10000,
             limit = None,
-            close = data,
+            close = close,
             window_size = window_size,
             num_portfolios = num_portfolios,
             num_stocks = num_stocks,

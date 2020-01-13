@@ -810,10 +810,10 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', type=int, help='How many iterations to print progress to console.')
     args = parser.parse_args()
 
-    for i in range(1):
+    for i in range(4):
         # Hyper params
         window_size = 1 # Needs to be one for quantum training
-        num_days = 15
+        num_days = 30
         num_stocks = 2
         num_portfolios = 2
         bs = False
@@ -854,7 +854,7 @@ if __name__ == '__main__':
 
         # Training the meta
         # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
-        epochs = 20
+        epochs = 50
         agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = True)
         agent.save(epochs=epochs)
 
@@ -871,19 +871,18 @@ if __name__ == '__main__':
             weights = 0.05 * np.random.randn(num_layers, num_wires*13)
             theta = agent.theta
 
-        num_days = 15
+        num_days = 30
         num_stocks = 3
-        num_portfolios = 2
-        data, names = load_data("dataset/test/", num_portfolios, num_stocks, num_days)
+        num_portfolios = 1
+        close, names = load_data("dataset/test_maml/", num_portfolios, num_stocks, num_days)
 
         # close_s = data.reshape(num_portfolios,num_stocks,num_days)
         # close_s[0]
 
         agent = Agent(
-            model = model,
             money = 10000,
-            limit = 5,
-            close = data,
+            limit = None,
+            close = close,
             window_size = window_size,
             num_portfolios = num_portfolios,
             num_stocks = num_stocks,
@@ -896,7 +895,7 @@ if __name__ == '__main__':
         )
 
         # Train with a few epochs to test the meta learning
-        epochs = 5
+        epochs = 10
         agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = True)
         agent.save(epochs)
 
