@@ -59,7 +59,7 @@ def wrangle_data(path, sample = None):
     df = pd.DataFrame(r).T
     return df
 
-df = wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=5_WS=10_ND=360', sample = 'test')
+df = wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/train/E=5000_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=5_WS=10_ND=360', sample = 'train')
 
 def sigmoid(x):
     return (2 / (1 + np.exp(-x))) - 1
@@ -67,24 +67,25 @@ def sigmoid(x):
 
 df["Mean"] = df.mean(axis=1)
 df["STD"] = df.std(axis=1)
-
-
+len(df)
+df
 
 
 
 # %%
 # For plotting training graphs
 
-df = df[15:] # remove some rows if needed
+df = df[:] # remove some rows if needed
 
 plt.plot(df.index, df.Mean)
 plt.fill_between(df.index, df.Mean - df.STD, df.Mean + df.STD, color = (0.1,0.2,0.7,0.3))
-plt.ylim(-3,3)
+# plt.ylim(-3,3)
+plt.xlim(0,500)
 plt.xlabel('Epochs')
 plt.ylabel('Rewards')
-plt.title('MAML Training on CC Stocks')
-plt.savefig('C:/Github/QuantumResearch/NES_Meta_Trading/graphicsNEWTRAIN_10000Epochs_9iters_defaultparams_training_MAML_2.png')
-# plt.show()
+plt.title('CAVIA Training on CC Stock Portfolios')
+plt.savefig('C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_9iters_CCData_training_3_zoom.png')
+plt.show()
 
 # %%
 
@@ -110,9 +111,9 @@ plt.fill_between(df.index, df.Mean - df.STD, df.Mean + df.STD, color = (0.1,0.2,
 plt.legend(loc='upper left')
 plt.xlabel('Timestep')
 plt.ylabel('Total Value ($)')
-plt.title('MAML Market Test on Portfolio')
+plt.title('CAVIA Market Test on Portfolio')
 plt.tight_layout()
-plt.savefig('C:/Github/QuantumResearch/NES_Meta_Trading/graphics/10000Epochs_9iters_defaultparams_marketTest_classic_MAML.png')
+plt.savefig('C:/Github/QuantumResearch/NES_Meta_Trading/graphics/10000-20Epochs_9iters_defaultparams_marketTest_classic_CAVIA.png')
 # plt.show()
 
 # %%
