@@ -59,61 +59,167 @@ def wrangle_data(path, sample = None):
     df = pd.DataFrame(r).T
     return df
 
-df = wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/train/E=5000_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=5_WS=10_ND=360', sample = 'train')
+def training_plot(trial_path, num_remove, plot_title, plot_save_loc):
+    df = wrangle_data(trial_path, sample = 'train')
 
-def sigmoid(x):
-    return (2 / (1 + np.exp(-x))) - 1
-
-
-df["Mean"] = df.mean(axis=1)
-df["STD"] = df.std(axis=1)
-len(df)
-df
+    def sigmoid(x):
+        return (2 / (1 + np.exp(-x))) - 1
 
 
+    df["Mean"] = df.mean(axis=1)
+    df["STD"] = df.std(axis=1)
+    len(df)
+    df
 
-# %%
-# For plotting training graphs
+    df = df[num_remove:] # remove some rows if needed
 
-df = df[:] # remove some rows if needed
+    plt.plot(df.index, df.Mean)
+    plt.fill_between(df.index, df.Mean - df.STD, df.Mean + df.STD, color = (0.1,0.2,0.7,0.3))
+    # plt.ylim(-3,3)
+    # plt.xlim(0,500)
+    plt.xlabel('Epochs')
+    plt.ylabel('Rewards')
+    plt.title(plot_title)
+    plt.savefig(plot_save_loc)
+    plt.show()
 
-plt.plot(df.index, df.Mean)
-plt.fill_between(df.index, df.Mean - df.STD, df.Mean + df.STD, color = (0.1,0.2,0.7,0.3))
-# plt.ylim(-3,3)
-plt.xlim(0,500)
-plt.xlabel('Epochs')
-plt.ylabel('Rewards')
-plt.title('CAVIA Training on CC Stock Portfolios')
-plt.savefig('C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_9iters_CCData_training_3_zoom.png')
-plt.show()
+def market_test_plot(trial_path, data_path, num_days, plot_title, plot_save_loc, legend_loc, trading_limit, starting_money=10000):
 
-# %%
+    df = wrangle_data(trial_path, sample = 'test')
 
-# For plotting market tests
+    def sigmoid(x):
+        return (2 / (1 + np.exp(-x))) - 1
 
-# TODO: Do this with portfolio data...
-# Load in the stock data to simulate what would happen without trading actions
-data, names = load_data("C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test/",360)
-data = [d[int(len(d)*.7):-1] for d in data]
-len(data[0])
 
-limit = 5
-starting_money = 10000
-data = [(np.array(d) - d[0]) * limit for d in data]
-data = [sum(x) + starting_money for x in zip(*data)]
-data
-df['market_value'] = data[:-1]
+    df["Mean"] = df.mean(axis=1)
+    df["STD"] = df.std(axis=1)
 
-#%%
-plt.plot(df.index, df.Mean, label='Mean Balance')
-plt.plot(df.market_value, label='Market Value', color='green')
-plt.fill_between(df.index, df.Mean - df.STD, df.Mean + df.STD, color = (0.1,0.2,0.7,0.3))
-plt.legend(loc='upper left')
-plt.xlabel('Timestep')
-plt.ylabel('Total Value ($)')
-plt.title('CAVIA Market Test on Portfolio')
-plt.tight_layout()
-plt.savefig('C:/Github/QuantumResearch/NES_Meta_Trading/graphics/10000-20Epochs_9iters_defaultparams_marketTest_classic_CAVIA.png')
+    print(len(df))
+
+    data, names = load_data(data_path,num_days)
+    data = [d[int(len(d)*.7):-1] for d in data]
+
+    limit = trading_limit
+    starting_money = starting_money
+    data = [(np.array(d) - d[0]) * limit for d in data]
+    data = [sum(x) + starting_money for x in zip(*data)]
+
+    # print(data)
+    print(len(data))
+
+    df['market_value'] = data[:]
+    # print(df)
+    #%%
+    plt.plot(df.index, df.Mean, label='Mean Balance')
+    plt.plot(df.market_value, label='Market Value', color='green')
+    plt.fill_between(df.index, df.Mean - df.STD, df.Mean + df.STD, color = (0.1,0.2,0.7,0.3))
+    plt.legend(loc=legend_loc)
+    plt.xlabel('Timestep')
+    plt.ylabel('Total Value ($)')
+    plt.title(plot_title)
+    plt.tight_layout()
+    plt.savefig(plot_save_loc)
+
+
+training_plot(
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/train/E=50_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=30_NCP=2',
+    num_remove=0,
+    plot_title='CAVIA Quantum Training on CC Stock Portfolios',
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum_50-10Epochs_8iters_CCData_NoLimit_training.png'
+)
+training_plot(
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2',
+    num_remove=0,
+    plot_title='CAVIA Quantum Test Training on Test Portfolio',
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum_50-10Epochs_8iters_CCData_NoLimit_testTrain.png'
+)
+market_test_plot(
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2',
+    data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
+    num_days=50,
+    plot_title='CAVIA Quantum Market Test on Test Portfolio',
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum_50-10Epochs_8iters_CCData_NoLimit_marketTest.png',
+    legend_loc='lower left',
+    trading_limit=200
+)
+
+training_plot(
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/train/E=50_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=30',
+    num_remove=0,
+    plot_title='MAML Quantum Training on CC Stock Portfolios',
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum_50-10Epochs_8iters_CCData_NoLimit_training.png'
+)
+training_plot(
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=30',
+    num_remove=0,
+    plot_title='MAML Quantum Test Training on Test Portfolio',
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum_50-10Epochs_8iters_CCData_NoLimit_testTrain.png'
+)
+market_test_plot(
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=30',
+    data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_maml/',
+    num_days=30,
+    plot_title='MAML Quantum Market Test on Test Portfolio',
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum_50-10Epochs_8iters_CCData_NoLimit_marketTest.png',
+    legend_loc='lower left',
+    trading_limit=200
+)
+
+# df = wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/train/E=5000_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=5_WS=10_ND=360', sample = 'train')
+#
+# def sigmoid(x):
+#     return (2 / (1 + np.exp(-x))) - 1
+#
+#
+# df["Mean"] = df.mean(axis=1)
+# df["STD"] = df.std(axis=1)
+# len(df)
+# df
+#
+#
+#
+# # %%
+# # For plotting training graphs
+#
+# df = df[:] # remove some rows if needed
+#
+# plt.plot(df.index, df.Mean)
+# plt.fill_between(df.index, df.Mean - df.STD, df.Mean + df.STD, color = (0.1,0.2,0.7,0.3))
+# # plt.ylim(-3,3)
+# plt.xlim(0,500)
+# plt.xlabel('Epochs')
+# plt.ylabel('Rewards')
+# plt.title('CAVIA Training on CC Stock Portfolios')
+# plt.savefig('C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_9iters_CCData_training_3_zoom.png')
 # plt.show()
+#
+# # %%
+#
+# # For plotting market tests
+#
+# # TODO: Do this with portfolio data...
+# # Load in the stock data to simulate what would happen without trading actions
+# data, names = load_data("C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test/",360)
+# data = [d[int(len(d)*.7):-1] for d in data]
+# len(data[0])
+#
+# limit = 5
+# starting_money = 10000
+# data = [(np.array(d) - d[0]) * limit for d in data]
+# data = [sum(x) + starting_money for x in zip(*data)]
+# data
+# df['market_value'] = data[:-1]
+#
+# #%%
+# plt.plot(df.index, df.Mean, label='Mean Balance')
+# plt.plot(df.market_value, label='Market Value', color='green')
+# plt.fill_between(df.index, df.Mean - df.STD, df.Mean + df.STD, color = (0.1,0.2,0.7,0.3))
+# plt.legend(loc='upper left')
+# plt.xlabel('Timestep')
+# plt.ylabel('Total Value ($)')
+# plt.title('CAVIA Market Test on Portfolio')
+# plt.tight_layout()
+# plt.savefig('C:/Github/QuantumResearch/NES_Meta_Trading/graphics/10000-20Epochs_9iters_defaultparams_marketTest_classic_CAVIA.png')
+# # plt.show()
 
 # %%
