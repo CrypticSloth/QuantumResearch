@@ -820,7 +820,7 @@ if __name__ == '__main__':
     for i in range(4):
         # Hyper params
         window_size = 1 # Needs to be one for quantum training
-        num_days = 30
+        num_days = 50
         num_stocks = 2
         num_portfolios = 2
         bs = False
@@ -843,7 +843,7 @@ if __name__ == '__main__':
 
         agent = Agent(
             money = 10000,
-            limit = None,
+            limit = 50,
             close = close,
             window_size = window_size,
             num_portfolios = num_portfolios,
@@ -888,7 +888,7 @@ if __name__ == '__main__':
 
         agent = Agent(
             money = 10000,
-            limit = None,
+            limit = 50,
             close = close,
             window_size = window_size,
             num_portfolios = num_portfolios,
