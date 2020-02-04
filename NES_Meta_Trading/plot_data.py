@@ -144,34 +144,55 @@ def market_test_detail(trial_path, data_path, num_days, plot_title, plot_save_lo
 
     df = wrangle_data(trial_path, sample = 'portfolio')
 
-    df["Mean"] = df.mean(axis=1)
-    df["STD"] = df.std(axis=1)
+    means = []
+    stds = []
+    for i in range(1,len(df)):
+        means.append(np.mean(np.array(df[i]), axis=0))
+        stds.append(np.std(np.array(df[i]), axis=0))
 
-    print(len(df))
+    means
+    stds
 
-    data, names = load_data(data_path,num_days)
+    data_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/'
+    data, names = load_data(data_path,50)
     data = [d[int(len(d)*.7):-1] for d in data]
+
+    trading_limit = 200
+    starting_money = 10000
 
     limit = trading_limit
     starting_money = starting_money
-    data = [(np.array(d) - d[0]) * limit for d in data]
-    data = [sum(x) + starting_money for x in zip(*data)]
-
+    data = [((np.array(d) - d[0]) * limit) + starting_money for d in data]
+    data
     # print(data)
     print(len(data))
 
     df['market_value'] = data[:]
     # print(df)
 
-    plt.plot(df.index, df.Mean, label='Mean Balance')
-    plt.plot(df.market_value, label='Market Value', color='green')
-    plt.fill_between(df.index, df.Mean - df.STD, df.Mean + df.STD, color = (0.1,0.2,0.7,0.3))
-    plt.legend(loc=legend_loc)
+    # %%
+    for i in range(len(means)):
+        if i == 0:
+            plt.plot(range(len(means[i])), means[i], label='Cash')
+        else:
+            plt.plot(range(len(means[i])), means[i], label=names[i-1])
+        # plt.fill_between(range(len(stds[i])), means[i] - stds[i], means[i] + stds[i], color = (0.1,0.2,0.7,0.3))
+    plt.legend()
+    plt.xlabel('Timestep')
+    plt.ylabel('Total Percent Held of Portfolio')
+    # plt.title(plot_title)
+    plt.tight_layout()
+    plt.plot()
+    # plt.savefig(plot_save_loc)
+    # %%
+    for i in range(len(data)):
+        plt.plot(range(len(data[i])),data[i],label=names[i])
+    plt.legend()
     plt.xlabel('Timestep')
     plt.ylabel('Total Value ($)')
-    plt.title(plot_title)
     plt.tight_layout()
-    plt.savefig(plot_save_loc)
+    plt.plot()
+    # %%
 
 
 training_plot(
