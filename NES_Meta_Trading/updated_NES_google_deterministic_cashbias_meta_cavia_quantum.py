@@ -526,7 +526,7 @@ class Agent:
         )
 
     def get_path(self,epochs):
-        dir_name = 'E={}_PS={}_S={}_LR={}_sk={}_IM={}_L={}_WS={}_ND={}_NCP={}/'.format(
+        dir_name = 'E={}_PS={}_S={}_LR={}_sk={}_IM={}_L={}_WS={}_ND={}_NCP={}_BS={}/'.format(
             epochs,
             self.POPULATION_SIZE,
             self.SIGMA,
@@ -537,7 +537,8 @@ class Agent:
             self.limit,
             self.window_size,
             self.num_days,
-            len(self.context_params)
+            len(self.context_params),
+            self.bs
         )
         # This will need to be set per computer
         return 'C:/GitHub/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/' + self.split + '/' + dir_name
@@ -817,13 +818,13 @@ if __name__ == '__main__':
     parser.add_argument('--checkpoint', type=int, help='How many iterations to print progress to console.')
     args = parser.parse_args()
 
-    for i in range(4):
+    for i in range(2):
         # Hyper params
         window_size = 1 # Needs to be one for quantum training
         num_days = 50
         num_stocks = 2
         num_portfolios = 2
-        bs = False
+        bs = True
 
         close = load_data("dataset/train/",num_portfolios, num_stocks, num_days)
         np.shape(close)
@@ -843,7 +844,7 @@ if __name__ == '__main__':
 
         agent = Agent(
             money = 10000,
-            limit = 50,
+            limit = None,
             close = close,
             window_size = window_size,
             num_portfolios = num_portfolios,
@@ -888,7 +889,7 @@ if __name__ == '__main__':
 
         agent = Agent(
             money = 10000,
-            limit = 50,
+            limit = None,
             close = close,
             window_size = window_size,
             num_portfolios = num_portfolios,

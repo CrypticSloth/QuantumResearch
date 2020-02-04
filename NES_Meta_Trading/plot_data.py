@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from collections import defaultdict
 import os
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -27,8 +28,10 @@ def load_data(path, num_days = 30):
 
     return data, names
 
+df = pd.DataFrame({'a': [[[1,2,3]],[[1,2,3]],[[1,2,3]]], 'b':  [[[1,2,3]],[[1,2,3]],[[1,2,3]]]})
+df
 
-def wrangle_data(path, sample = None):
+def wrangle_data(path, sample):
     '''
         Input the path to the directory that contains the
 
@@ -55,9 +58,24 @@ def wrangle_data(path, sample = None):
                 df = pd.read_csv(path +  '/' +  d)
                 r.append(df['returns'])
                 roi.append(df['roi'])
+                port.append(df['portfolio'])
 
-    df = pd.DataFrame(r).T
+    if sample == 'portfolio':
+        vals = defaultdict(list)
+        for d in os.listdir():
+            if d[-4:] == '.csv' and 'portfolio' in d:
+                df = pd.read_csv(path +  '/' +  d)
+                for i in range(len(df.columns)):
+                    vals[i].append(list(df[df.columns[i]]))
+        return vals
+
+    if sample == 'train' or 'test':
+        df = pd.DataFrame(r).T
+
     return df
+
+df = pd.DataFrame({'a':[1,2,3]})
+list(df['a'])
 
 def training_plot(trial_path, num_remove, plot_title, plot_save_loc):
     df = wrangle_data(trial_path, sample = 'train')
@@ -90,6 +108,41 @@ def market_test_plot(trial_path, data_path, num_days, plot_title, plot_save_loc,
     def sigmoid(x):
         return (2 / (1 + np.exp(-x))) - 1
 
+
+    df["Mean"] = df.mean(axis=1)
+    df["STD"] = df.std(axis=1)
+
+    print(len(df))
+
+    data, names = load_data(data_path,num_days)
+    data = [d[int(len(d)*.7):-1] for d in data]
+
+    limit = trading_limit
+    starting_money = starting_money
+    data = [(np.array(d) - d[0]) * limit for d in data]
+    data = [sum(x) + starting_money for x in zip(*data)]
+
+    # print(data)
+    print(len(data))
+
+    df['market_value'] = data[:]
+    # print(df)
+
+    plt.plot(df.index, df.Mean, label='Mean Balance')
+    plt.plot(df.market_value, label='Market Value', color='green')
+    plt.fill_between(df.index, df.Mean - df.STD, df.Mean + df.STD, color = (0.1,0.2,0.7,0.3))
+    plt.legend(loc=legend_loc)
+    plt.xlabel('Timestep')
+    plt.ylabel('Total Value ($)')
+    plt.title(plot_title)
+    plt.tight_layout()
+    plt.savefig(plot_save_loc)
+
+
+def market_test_detail(trial_path, data_path, num_days, plot_title, plot_save_loc, legend_loc, trading_limit, starting_money=10000):
+    trial_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=1_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True/'
+
+    df = wrangle_data(trial_path, sample = 'portfolio')
 
     df["Mean"] = df.mean(axis=1)
     df["STD"] = df.std(axis=1)
