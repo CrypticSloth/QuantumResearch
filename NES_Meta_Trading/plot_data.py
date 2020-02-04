@@ -139,38 +139,30 @@ def market_test_plot(trial_path, data_path, num_days, plot_title, plot_save_loc,
     plt.savefig(plot_save_loc)
 
 
-def market_test_detail(trial_path, data_path, num_days, plot_title, plot_save_loc, legend_loc, trading_limit, starting_money=10000):
-    trial_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=1_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True/'
-
+def market_test_detail(trial_path, data_path, num_days, trading_limit, starting_money=10000):
+    # trial_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=1_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True/'
     df = wrangle_data(trial_path, sample = 'portfolio')
-
     means = []
     stds = []
     for i in range(1,len(df)):
         means.append(np.mean(np.array(df[i]), axis=0))
         stds.append(np.std(np.array(df[i]), axis=0))
-
-    means
-    stds
-
-    data_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/'
-    data, names = load_data(data_path,50)
+    # means
+    # stds
+    # data_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/'
+    data, names = load_data(data_path,num_days)
     data = [d[int(len(d)*.7):-1] for d in data]
-
-    trading_limit = 200
-    starting_money = 10000
-
+    # trading_limit = 200
+    # starting_money = 10000
     limit = trading_limit
     starting_money = starting_money
     data = [((np.array(d) - d[0]) * limit) + starting_money for d in data]
-    data
+    # data
     # print(data)
-    print(len(data))
-
-    df['market_value'] = data[:]
+    # print(len(data))
     # print(df)
-
     # %%
+    plt.figure(1)
     for i in range(len(means)):
         if i == 0:
             plt.plot(range(len(means[i])), means[i], label='Cash')
@@ -182,9 +174,9 @@ def market_test_detail(trial_path, data_path, num_days, plot_title, plot_save_lo
     plt.ylabel('Total Percent Held of Portfolio')
     # plt.title(plot_title)
     plt.tight_layout()
-    plt.plot()
     # plt.savefig(plot_save_loc)
     # %%
+    plt.figure(2)
     for i in range(len(data)):
         plt.plot(range(len(data[i])),data[i],label=names[i])
     plt.legend()
@@ -192,8 +184,13 @@ def market_test_detail(trial_path, data_path, num_days, plot_title, plot_save_lo
     plt.ylabel('Total Value ($)')
     plt.tight_layout()
     plt.plot()
-    # %%
 
+market_test_detail(
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=1_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True/',
+    data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
+    num_days=50,
+    trading_limit=200
+)
 
 training_plot(
     trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/train/E=50_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=50_WS=1_ND=50_NCP=2',
