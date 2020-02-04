@@ -27,7 +27,7 @@ from pennylane import numpy as np
 # from updated_NES_google_deterministic import load_data, get_state
 # os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 # close, names = load_data("dataset/train_q/",5)
-num_stocks = 3
+num_stocks = 2
 num_wires = num_stocks + 1 # +1 for the cash bias layer
 # NOTE: 5 wires gives a memory error so 4 seems to be the max
 dev = qml.device("strawberryfields.fock", wires=num_wires, cutoff_dim=7)
@@ -523,7 +523,7 @@ class Agent:
         )
 
     def get_path(self,epochs):
-        dir_name = 'E={}_PS={}_S={}_LR={}_sk={}_IM={}_L={}_WS={}_ND={}/'.format(
+        dir_name = 'E={}_PS={}_S={}_LR={}_sk={}_IM={}_L={}_WS={}_ND={}_BS={}/'.format(
             epochs,
             self.POPULATION_SIZE,
             self.SIGMA,
@@ -533,7 +533,8 @@ class Agent:
             self.initial_money,
             self.limit,
             self.window_size,
-            self.num_days
+            self.num_days,
+            self.bs
         )
         # This will need to be set per computer
         return 'C:/GitHub/QuantumResearch/NES_Meta_Trading/results/maml_quantum/' + self.split + '/' + dir_name
@@ -724,6 +725,7 @@ class Agent:
 
             total_values = []
             total_returns = []
+            portfolio_values = []
             for t in range(0, len(close_s[0]) - 1, self.skip):
 
                 portfolio = self.act(cur_state)
@@ -745,6 +747,7 @@ class Agent:
 
                     total_values.append(total_asset_value)
                     total_returns.append(((total_asset_value - starting_money) / starting_money + 0.00001) * 100)
+                    portfolio_values.append(portfolio[0])
 
             total_asset_value = np.sum([close_s[i][-1] * cur_inventory[i+1] for i in range(self.num_stocks)]) + cur_inventory[0]
             rho1 = (total_asset_value / starting_money - 1) * 100 # rate of returns
@@ -793,6 +796,9 @@ class Agent:
                 ts = time.time()
                 df.to_csv(path + '/{}_test_reward.csv'.format(int(ts)), index=True)
 
+                df = pd.DataFrame(np.array(portfolio_values))
+                df.to_csv(path + '/{}_portfolio_reward.csv'.format(int(ts)), index=True)
+
     def save(self, epochs):
         ''' save the results of the agent to disk '''
         # User input path = 'results/(train/test)/'
@@ -806,17 +812,26 @@ if __name__ == '__main__':
 
     import argparse
     parser = argparse.ArgumentParser(description='Train and test portfolio trainer')
-    parser.add_argument('--iterations', type=int, help='How many iterations to train the model.')
+    parser.add_argument('--iterations', type=int, help='How many iterations of the algorithm to run.')
     parser.add_argument('--checkpoint', type=int, help='How many iterations to print progress to console.')
+    parser.add_argument('--epochsTrain', type=int, help='Epochs to train the NES algorithm')
+    parser.add_argument('--epochsTest', type=int, help='Epochs to train the meta algorithm')
+    parser.add_argument('--limit', help='Maximum algorithm can trade of one stock')
+    parser.add_argument('--num_days',type=int, default=50, help='Number of days to trade on')
+    parser.add_argument('--num_stocks',type=int, default=2, help='Number of stocks to trade on')
+    parser.add_argument('--num_portfolios', type=int, default=2, help='Number of portfolios to trade on when training')
     args = parser.parse_args()
 
-    for i in range(4):
+    if args.limit == "None":
+        args.limit = None
+
+    for i in range(args.iterations):
         # Hyper params
         window_size = 1 # Needs to be one for quantum training
-        num_days = 50
-        num_stocks = 2
-        num_portfolios = 2
-        bs = False
+        num_days = args.num_days
+        num_stocks = args.num_stocks
+        num_portfolios = args.num_portfolios
+        bs = True
 
         close = load_data("dataset/train/",num_portfolios, num_stocks, num_days)
         np.shape(close)
@@ -836,7 +851,7 @@ if __name__ == '__main__':
 
         agent = Agent(
             money = 10000,
-            limit = 50,
+            limit = args.limit,
             close = close,
             window_size = window_size,
             num_portfolios = num_portfolios,
@@ -854,9 +869,8 @@ if __name__ == '__main__':
 
         # Training the meta
         # agent.fit(iterations = args.iterations, checkpoint = args.checkpoint)
-        epochs = 50
-        agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = True)
-        agent.save(epochs=epochs)
+        agent.fit(epochs = args.epochsTrain, num_tasks = num_portfolios, checkpoint = args.checkpoint, split="train", save_results = True)
+        agent.save(epochs=args.epochsTrain)
 
         # In[80]:
         # Training the trained meta on one stock with fewer epochs
@@ -871,17 +885,15 @@ if __name__ == '__main__':
             weights = 0.05 * np.random.randn(num_layers, num_wires*13)
             theta = agent.theta
 
-        num_days = 50
-        num_stocks = 3
-        num_portfolios = 1
-        close, names = load_data("dataset/test_maml/", num_portfolios, num_stocks, num_days)
+        num_portfolios = 1 # Number of portfolios must be 1 when testing
+        close, names = load_data("dataset/test_cavia/", num_portfolios, num_stocks, num_days)
 
         # close_s = data.reshape(num_portfolios,num_stocks,num_days)
         # close_s[0]
 
         agent = Agent(
             money = 10000,
-            limit = 50,
+            limit = args.limit,
             close = close,
             window_size = window_size,
             num_portfolios = num_portfolios,
@@ -895,8 +907,7 @@ if __name__ == '__main__':
         )
 
         # Train with a few epochs to test the meta learning
-        epochs = 10
-        agent.fit(epochs = epochs, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = True)
-        agent.save(epochs)
+        agent.fit(epochs = args.epochsTest, num_tasks = num_portfolios, checkpoint = 1, split="train", save_results = True)
+        agent.save(args.epochsTest)
 
-        agent.buy(split="test", names=names, save_results=True, epochs=epochs)
+        agent.buy(split="test", names=names, save_results=True, epochs=args.epochsTest)
