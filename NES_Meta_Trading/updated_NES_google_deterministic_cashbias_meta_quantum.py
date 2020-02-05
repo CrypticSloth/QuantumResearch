@@ -817,6 +817,7 @@ if __name__ == '__main__':
     parser.add_argument('--epochsTrain', type=int, help='Epochs to train the NES algorithm')
     parser.add_argument('--epochsTest', type=int, help='Epochs to train the meta algorithm')
     parser.add_argument('--limit', help='Maximum algorithm can trade of one stock')
+    parser.add_argument('--beamsplitter', help='Use beamsplitter for quantum network.')
     parser.add_argument('--num_days',type=int, default=50, help='Number of days to trade on')
     parser.add_argument('--num_stocks',type=int, default=2, help='Number of stocks to trade on')
     parser.add_argument('--num_portfolios', type=int, default=2, help='Number of portfolios to trade on when training')
@@ -824,6 +825,13 @@ if __name__ == '__main__':
 
     if args.limit == "None":
         args.limit = None
+    else:
+         args.limit = int(args.limit)
+         
+    if args.beamsplitter == "False":
+        args.beamsplitter = False
+    if args.beamsplitter == "True":
+        args.beamsplitter = True
 
     for i in range(args.iterations):
         # Hyper params
@@ -831,7 +839,7 @@ if __name__ == '__main__':
         num_days = args.num_days
         num_stocks = args.num_stocks
         num_portfolios = args.num_portfolios
-        bs = True
+        bs = args.beamsplitter
 
         close = load_data("dataset/train/",num_portfolios, num_stocks, num_days)
         np.shape(close)
