@@ -27,6 +27,7 @@ from pennylane import numpy as np
 # from updated_NES_google_deterministic import load_data, get_state
 # os.chdir("C:/Github/QuantumResearch/NES_Meta_Trading/")
 # close, names = load_data("dataset/train_q/",5)
+# Because pennylane cannot be inside a class we must specify this ahead of time
 num_stocks = 2
 num_wires = (num_stocks * 2) + 1 # *2 for the cavia context params (one for each stock) and +1 for the cash bias layer
 # NOTE: 5 wires gives a memory error so 4 seems to be the max
@@ -834,7 +835,7 @@ if __name__ == '__main__':
         args.limit = None
     else:
          args.limit = int(args.limit)
-         
+
     if args.beamsplitter == "False":
         args.beamsplitter = False
     if args.beamsplitter == "True":

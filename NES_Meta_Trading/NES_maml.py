@@ -27,9 +27,11 @@ def load_data(path, num_portfolios, num_stocks, num_days = 30):
     for i in range(num_portfolios):
         paths = random.sample(paths, num_stocks) # Randomly sample stocks to go in the portfolio
         data = []
+        #dates = []
         names = []
         for p in paths:
             data.append(pd.read_csv(path + p).Close.values.tolist()[0:num_days])
+            #dates.append(pd.read_csv(path + p).iloc[:,0].values.tolist()[0:num_days])
             if num_portfolios == 1:
                 names.append(p[:-4])
 
@@ -39,9 +41,12 @@ def load_data(path, num_portfolios, num_stocks, num_days = 30):
         portfolios.append(np.array([data]).flatten())
 
     if num_portfolios == 1:
-        return np.array(portfolios), names
+        return np.array(portfolios), names#, dates
     else:
         return np.array(portfolios)
+
+# _,_,d = load_data('C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/', 1, 1, 360)
+# d[0][int(len(d[0])*0.7):-1]
 
 def get_state(data, t, n, num_stocks, num_days):
     '''
@@ -125,7 +130,7 @@ class Deep_Evolution_Strategy:
                     weights_population = self._get_weight_from_population(
                         self.weights, population[k]
                     )
-                    rewards[k] = self.reward_function(weights_population,index = i,split=split)
+                    rewards[k] = self.reward_function(weights_population,index = i,split=split) # Fitness function?
                 rewards = (rewards - np.mean(rewards)) / (np.std(rewards) + 0.00001) # Normalize the rewards here
 
                 t = []
