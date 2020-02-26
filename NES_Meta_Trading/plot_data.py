@@ -3,6 +3,7 @@ import pandas as pd
 from collections import defaultdict
 import os
 import matplotlib.pyplot as plt
+from matplotlib.font_manager import FontProperties
 import seaborn as sns
 sns.set()
 
@@ -138,8 +139,9 @@ def market_test_plot(trial_path, data_path, num_days, plot_title, plot_save_loc,
 
 
 def market_test_detail(trial_path, data_path, plot_title, plot_save_loc, num_days, trading_limit, starting_money=10000):
-    # trial_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=1_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True/'
+    # trial_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360'
     df = wrangle_data(trial_path, sample = 'portfolio')
+
     means = []
     stds = []
     for i in range(1,len(df)):
@@ -147,43 +149,70 @@ def market_test_detail(trial_path, data_path, plot_title, plot_save_loc, num_day
         stds.append(np.std(np.array(df[i]), axis=0))
     # means
     # stds
-    # data_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/'
+    # data_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test/'
+    # num_days = 360
     data, names = load_data(data_path,num_days)
     data = [d[int(len(d)*.7):-1] for d in data]
-    # trading_limit = 200
-    # starting_money = 10000
+    trading_limit = 10
+    starting_money = 10000
     limit = trading_limit
     starting_money = starting_money
     data = [((np.array(d) - d[0]) * limit) + starting_money for d in data]
+
+    tableau10 = [(31, 119, 180), (255, 127, 14),
+             (44, 160, 44), (214, 39, 40),
+             (148, 103, 189),  (140, 86, 75),
+             (227, 119, 194),  (127, 127, 127),
+             (188, 189, 34),  (23, 190, 207)]
+
+    for i in range(len(tableau10)):
+        r, g, b = tableau10[i]
+        tableau10[i] = (r / 255., g / 255., b / 255.)
+
     # data
-    # print(data)
-    # print(len(data))
-    # print(df)
+    # means
+
+    means = np.around(means, 2)
+    means = means * 100
+    # sanity check
+    [x.sum() for x in np.array(means).T]
+
+    # names
+    ind = np.arange(len(means[0]))
+    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(20,10))
     # %%
-    plt.figure(1)
     for i in range(len(means)):
         if i == 0:
-            plt.plot(range(len(means[i])), means[i], label='Cash')
+            # plt.plot(range(len(means[i])), means[i], label='Cash')
+            ax1.bar(ind, means[i], label='Cash', color=tableau10[i], width=0.85)
         else:
-            plt.plot(range(len(means[i])), means[i], label=names[i-1])
-        # plt.fill_between(range(len(stds[i])), means[i] - stds[i], means[i] + stds[i], color = (0.1,0.2,0.7,0.3))
-    plt.legend()
-    plt.xlabel('Timestep')
-    plt.ylabel('Total Percent Held of Portfolio')
-    plt.title(plot_title)
-    plt.tight_layout()
+            # plt.plot(range(len(means[i])), means[i], label=names[i-1])
+            ax1.bar(ind, means[i], bottom=means[i-1], label=names[i-1], color=tableau10[i], width=0.85)
+
+    box = ax1.get_position()
+    ax1.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax1.set_xlabel('Timestep')
+    ax1.set_ylabel('Total Percent Held of Portfolio')
+    # ax1.tight_layout()
+    # plt.plot()
     # plt.savefig(plot_save_loc)
     # %%
-    plt.figure(2)
+    # plt.figure(2)
     for i in range(len(data)):
-        plt.plot(range(len(data[i])),data[i],label=names[i])
-    plt.legend()
-    plt.xlabel('Timestep')
-    plt.ylabel('Total Value ($)')
-    plt.tight_layout()
-    # plt.plot()
-    plt.savefig(plot_save_loc)
+        ax2.plot(range(len(data[i])),data[i],label=names[i],color=tableau10[i+1])
 
+    box = ax2.get_position()
+    ax2.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    ax2.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax2.set_xlabel('Timestep')
+    ax2.set_ylabel('Total Value ($)')
+    # ax2.tight_layout()
+    # ax2.plot()
+    fig.suptitle(plot_title)
+    fig.savefig(plot_save_loc, dpi=500)
+
+    # %%
 ########
 # MAML #
 ########
@@ -205,17 +234,18 @@ market_test_plot(
     num_days=360,
     plot_title='MAML Market Test on Test Portfolio',
     plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML/MAML_360-20Epochs_12iters_CCData_Limit10_marketTest.png',
-    legend_loc='lower left',
+    legend_loc='upper left',
     trading_limit=10
 )
 market_test_detail(
     trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360',
     data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test/',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML/MAML_360-20Epochs_12iters_CCData_Limit10_marketTestDetail.png',
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML/test.png',
     plot_title='MAML Market Test Detail on Test Portfolio',
     num_days=360,
     trading_limit=10
 )
+
 
 #########
 # CAVIA #
@@ -238,7 +268,7 @@ market_test_plot(
     num_days=360,
     plot_title='CAVIA Quantum Market Test on Test Portfolio',
     plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA/CAVIA_2500-20Epochs_12iters_CCData_Limit10_marketTest.png',
-    legend_loc='lower left',
+    legend_loc='upper left',
     trading_limit=10
 )
 market_test_detail(
