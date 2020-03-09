@@ -137,7 +137,6 @@ def market_test_plot(trial_path, data_path, num_days, plot_title, plot_save_loc,
     plt.tight_layout()
     plt.savefig(plot_save_loc)
 
-
 def market_test_detail(trial_path, data_path, plot_title, plot_save_loc, num_days, trading_limit, starting_money=10000):
     # trial_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360'
     df = wrangle_data(trial_path, sample = 'portfolio')
@@ -175,8 +174,10 @@ def market_test_detail(trial_path, data_path, plot_title, plot_save_loc, num_day
     means = np.around(means, 2)
     means = means * 100
     # sanity check
-    [x.sum() for x in np.array(means).T]
+    # print(len(means))
+    # print([x.sum() for x in np.array(means).T])
 
+    np.sum(means[0:2].T, axis=1)
     # names
     ind = np.arange(len(means[0]))
     fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(20,10))
@@ -187,7 +188,8 @@ def market_test_detail(trial_path, data_path, plot_title, plot_save_loc, num_day
             ax1.bar(ind, means[i], label='Cash', color=tableau10[i], width=0.85)
         else:
             # plt.plot(range(len(means[i])), means[i], label=names[i-1])
-            ax1.bar(ind, means[i], bottom=means[i-1], label=names[i-1], color=tableau10[i], width=0.85)
+            ax1.bar(ind, means[i], bottom=np.sum(means[0:i].T, axis=1), label=names[i-1], color=tableau10[i], width=0.85)
+
 
     box = ax1.get_position()
     ax1.set_position([box.x0, box.y0, box.width * 0.8, box.height])
