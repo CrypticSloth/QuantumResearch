@@ -2,10 +2,21 @@ import numpy as np
 import pandas as pd
 from collections import defaultdict
 import os
+# import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 import seaborn as sns
 sns.set()
+
+plt.rcParams.update({
+                    'axes.titlesize': 25,
+                    'axes.labelsize': 20,
+                    'legend.fontsize': 20,
+                    'xtick.labelsize': 16,
+                    'ytick.labelsize': 16,
+                    'figure.figsize' : [10,6],
+                    'savefig.dpi' : 500
+                    })
 
 def load_data(path, num_days = 30):
     '''
@@ -34,7 +45,7 @@ df
 
 def wrangle_data(path, sample):
     '''
-        Input the path to the directory that contains the
+        Input the path to the directory that contains the results and reshape it
 
     '''
     os.chdir(path)
@@ -74,8 +85,39 @@ def wrangle_data(path, sample):
 
     return df
 
-df = pd.DataFrame({'a':[1,2,3]})
-list(df['a'])
+
+# Return the market value of the stocks traded
+# Classical
+data, _ = load_data('C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test/', 360)
+data = [d[int(len(d)*.7):-1] for d in data]
+limit = 10
+starting_money = 10000
+data = [(np.array(d) - d[0]) * limit for d in data]
+data = [sum(x) + starting_money for x in zip(*data)]
+data[-2]
+
+# Quantum
+data, _ = load_data('C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/', 50)
+data = [d[int(len(d)*.7):-1] for d in data]
+limit = 200
+starting_money = 10000
+data = [(np.array(d) - d[0]) * limit for d in data]
+data = [sum(x) + starting_money for x in zip(*data)]
+data[-2]
+
+# Return the final dolar amount for each test run.
+# MAML
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360', 'test').mean(axis=1))[-2]
+# CAVIA
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360', 'test').mean(axis=1))[-2]
+# Quantum MAML (BS=False)
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=False', 'test').mean(axis=1))[-2]
+# Quantum MAML (BS=True)
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True', 'test').mean(axis=1))[-2]
+# Quantum CAVIA (BS=False)
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=False', 'test').mean(axis=1))[-2]
+# Quantum CAVIA (BS=True)
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=True', 'test').mean(axis=1))[-2]
 
 def training_plot(trial_path, num_remove, plot_title, plot_save_loc):
     df = wrangle_data(trial_path, sample = 'train')
@@ -137,27 +179,8 @@ def market_test_plot(trial_path, data_path, num_days, plot_title, plot_save_loc,
     plt.tight_layout()
     plt.savefig(plot_save_loc)
 
-def market_test_detail(trial_path, data_path, plot_title, plot_save_loc, num_days, trading_limit, starting_money=10000):
+def market_test_detail(trial_path1, trial_path2, data_path, title1, title2, plot_save_loc, num_days, trading_limit, starting_money=10000):
     # trial_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360'
-    df = wrangle_data(trial_path, sample = 'portfolio')
-
-    means = []
-    stds = []
-    for i in range(1,len(df)):
-        means.append(np.mean(np.array(df[i]), axis=0))
-        stds.append(np.std(np.array(df[i]), axis=0))
-    # means
-    # stds
-    # data_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test/'
-    # num_days = 360
-    data, names = load_data(data_path,num_days)
-    data = [d[int(len(d)*.7):-1] for d in data]
-    trading_limit = 10
-    starting_money = 10000
-    limit = trading_limit
-    starting_money = starting_money
-    data = [((np.array(d) - d[0]) * limit) + starting_money for d in data]
-
     tableau10 = [(31, 119, 180), (255, 127, 14),
              (44, 160, 44), (214, 39, 40),
              (148, 103, 189),  (140, 86, 75),
@@ -168,51 +191,85 @@ def market_test_detail(trial_path, data_path, plot_title, plot_save_loc, num_day
         r, g, b = tableau10[i]
         tableau10[i] = (r / 255., g / 255., b / 255.)
 
-    # data
-    # means
+    # Process first trial data
+    df1 = wrangle_data(trial_path1, sample = 'portfolio')
+    means1 = []
+    stds = []
+    for i in range(1,len(df1)):
+        means1.append(np.mean(np.array(df1[i]), axis=0))
+        stds.append(np.std(np.array(df1[i]), axis=0))
+    means1 = np.around(means1, 2)
+    means1 = means1 * 100
 
-    means = np.around(means, 2)
-    means = means * 100
+    # Process second trial data
+    df2 = wrangle_data(trial_path2, sample = 'portfolio')
+    means2 = []
+    stds = []
+    for i in range(1,len(df2)):
+        means2.append(np.mean(np.array(df2[i]), axis=0))
+        stds.append(np.std(np.array(df2[i]), axis=0))
+    means2 = np.around(means2, 2)
+    means2 = means2 * 100
+
+    # Process data for plot 3
+    data, names = load_data(data_path,num_days)
+    data = [d[int(len(d)*.7):-1] for d in data]
+    trading_limit = 10
+    starting_money = 10000
+    limit = trading_limit
+    starting_money = starting_money
+    data = [((np.array(d) - d[0]) * limit) + starting_money for d in data]
     # sanity check
-    # print(len(means))
-    # print([x.sum() for x in np.array(means).T])
+    # print(len(means1))
+    # print([x.sum() for x in np.array(means1).T])
 
-    np.sum(means[0:2].T, axis=1)
-    # names
-    ind = np.arange(len(means[0]))
-    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, figsize=(20,10))
-    # %%
-    for i in range(len(means)):
+    # Initialize plot
+    fig, (ax1, ax2, ax3) = plt.subplots(3, 1, sharex=True, figsize=(20,15))
+    fig.tight_layout(pad=5.0)
+
+    # Plot first plot
+    ind = np.arange(len(means1[0]))
+    for i in range(len(means1)):
         if i == 0:
-            # plt.plot(range(len(means[i])), means[i], label='Cash')
-            ax1.bar(ind, means[i], label='Cash', color=tableau10[i], width=0.85)
+            ax1.bar(ind, means1[i], label='Cash', color=tableau10[i], width=0.85)
         else:
-            # plt.plot(range(len(means[i])), means[i], label=names[i-1])
-            ax1.bar(ind, means[i], bottom=np.sum(means[0:i].T, axis=1), label=names[i-1], color=tableau10[i], width=0.85)
-
+            ax1.bar(ind, means1[i], bottom=np.sum(means1[0:i].T, axis=1), label=names[i-1], color=tableau10[i], width=0.85)
 
     box = ax1.get_position()
     ax1.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-    ax1.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    ax1.set_xlabel('Timestep')
+    ax1.legend(loc='center left', bbox_to_anchor=(1, 0))
+    ax1.set_title(title1)
+    # ax1.set_xlabel('Timestep')
     ax1.set_ylabel('Total Percent Held of Portfolio')
-    # ax1.tight_layout()
-    # plt.plot()
-    # plt.savefig(plot_save_loc)
-    # %%
-    # plt.figure(2)
-    for i in range(len(data)):
-        ax2.plot(range(len(data[i])),data[i],label=names[i],color=tableau10[i+1])
+
+    # Plot second plot
+    ind = np.arange(len(means2[0]))
+    for i in range(len(means2)):
+        if i == 0:
+            ax2.bar(ind, means2[i], label='Cash', color=tableau10[i], width=0.85)
+        else:
+            ax2.bar(ind, means2[i], bottom=np.sum(means2[0:i].T, axis=1), label=names[i-1], color=tableau10[i], width=0.85)
 
     box = ax2.get_position()
     ax2.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-    ax2.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    ax2.set_xlabel('Timestep')
-    ax2.set_ylabel('Total Value ($)')
-    # ax2.tight_layout()
-    # ax2.plot()
-    fig.suptitle(plot_title)
-    fig.savefig(plot_save_loc, dpi=500)
+    # ax2.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax2.set_title(title2)
+    # ax2.set_xlabel('Timestep')
+    ax2.set_ylabel('Total Percent Held of Portfolio')
+
+    # Plot third plot
+    for i in range(len(data)):
+        ax3.plot(range(len(data[i])),data[i],label=names[i],color=tableau10[i+1])
+
+    box = ax3.get_position()
+    ax3.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    ax3.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax3.set_title('Market Value')
+    ax3.set_xlabel('Timestep')
+    ax3.set_ylabel('Total Value ($)')
+
+    # fig.suptitle(plot_title)
+    fig.savefig(plot_save_loc)
 
     # %%
 ########
@@ -236,18 +293,9 @@ market_test_plot(
     num_days=360,
     plot_title='MAML Market Test on Test Portfolio',
     plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML/MAML_360-20Epochs_12iters_CCData_Limit10_marketTest.png',
-    legend_loc='upper left',
+    legend_loc='lower right',
     trading_limit=10
 )
-market_test_detail(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360',
-    data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test/',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML/test.png',
-    plot_title='MAML Market Test Detail on Test Portfolio',
-    num_days=360,
-    trading_limit=10
-)
-
 
 #########
 # CAVIA #
@@ -268,16 +316,20 @@ market_test_plot(
     trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360',
     data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test/',
     num_days=360,
-    plot_title='CAVIA Quantum Market Test on Test Portfolio',
+    plot_title = 'CAVIA Market Test on Test Portfolio',
     plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA/CAVIA_2500-20Epochs_12iters_CCData_Limit10_marketTest.png',
     legend_loc='upper left',
     trading_limit=10
 )
+
+# Detailed trading plot
 market_test_detail(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360',
+    trial_path1='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360',
+    trial_path2='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360',
     data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test/',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA/CAVIA_2500-20Epochs_12iters_CCData_Limit10_marketTestDetail.png',
-    plot_title='CAVIA Market Test Detail on Test Portfolio',
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA/CAVIA_MAML_2500-20Epochs_12iters_CCData_Limit10_marketTestDetail.png',
+    title1='MAML Distribution of Portfolio',
+    title2='CAVIA Distribution of Portfolio',
     num_days=360,
     trading_limit=10
 )
@@ -305,14 +357,6 @@ market_test_plot(
     legend_loc='lower left',
     trading_limit=200,
     offset=None
-)
-market_test_detail(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=False',
-    data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum/MAML_Quantum_BSFalse_50-10Epochs_12iters_CCData_LimitNone_marketTestDetail.png',
-    plot_title='MAML Quantum (BS=False) Market Test Detail on Test Portfolio',
-    num_days=50,
-    trading_limit=200
 )
 
 #################
@@ -345,6 +389,17 @@ market_test_detail(
     data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
     plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_Quantum_BSFalse_50-10Epochs_12iters_CCData_LimitNone_marketTestDetail.png',
     plot_title='CAVIA Quantum (BS=False) Market Test Detail on Test Portfolio',
+    num_days=50,
+    trading_limit=200
+)
+
+market_test_detail(
+    trial_path1='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=False',
+    trial_path2='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=False',
+    data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_MAML_Quantum_BSFalse_2500-20Epochs_12iters_CCData_Limit10_marketTestDetail.png',
+    title1='MAML Quantum (BS=False) Distribution of Portfolio',
+    title2='CAVIA Quantum (BS=False) Distribution of Portfolio',
     num_days=50,
     trading_limit=200
 )
@@ -408,14 +463,18 @@ market_test_plot(
     trading_limit=200,
     offset=None
 )
+
 market_test_detail(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=True',
+    trial_path1='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True',
+    trial_path2='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=True',
     data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_Quantum_BSTrue_50-10Epochs_12iters_CCData_LimitNone_marketTestDetail.png',
-    plot_title='CAVIA Quantum (BS=True) Market Test Detail on Test Portfolio',
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_MAML_Quantum_BSTrue_2500-20Epochs_12iters_CCData_Limit10_marketTestDetail.png',
+    title1='MAML Quantum (BS=True) Distribution of Portfolio',
+    title2='CAVIA Quantum (BS=True) Distribution of Portfolio',
     num_days=50,
     trading_limit=200
 )
+
 
 # df = wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/train/E=5000_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=5_WS=10_ND=360', sample = 'train')
 #
