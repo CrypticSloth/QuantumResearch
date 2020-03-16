@@ -43,6 +43,11 @@ def load_data(path, num_days = 30):
 df = pd.DataFrame({'a': [[[1,2,3]],[[1,2,3]],[[1,2,3]]], 'b':  [[[1,2,3]],[[1,2,3]],[[1,2,3]]]})
 df
 
+num_days = 50
+df = pd.read_csv('C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/ABC.csv')[0:num_days]
+df
+df[int(len(df)*.7):-1]
+
 def wrangle_data(path, sample):
     '''
         Input the path to the directory that contains the results and reshape it
@@ -103,7 +108,7 @@ limit = 200
 starting_money = 10000
 data = [(np.array(d) - d[0]) * limit for d in data]
 data = [sum(x) + starting_money for x in zip(*data)]
-data[-2]
+data[-1]
 
 # Return the final dolar amount for each test run.
 # MAML
@@ -111,13 +116,13 @@ np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/t
 # CAVIA
 np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360', 'test').mean(axis=1))[-2]
 # Quantum MAML (BS=False)
-np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=False', 'test').mean(axis=1))[-2]
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=False', 'test').mean(axis=1))[-1]
 # Quantum MAML (BS=True)
-np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True', 'test').mean(axis=1))[-2]
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True', 'test').mean(axis=1))[-1]
 # Quantum CAVIA (BS=False)
-np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=False', 'test').mean(axis=1))[-2]
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=False', 'test').mean(axis=1))[-1]
 # Quantum CAVIA (BS=True)
-np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=True', 'test').mean(axis=1))[-2]
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=True', 'test').mean(axis=1))[-1]
 
 def training_plot(trial_path, num_remove, plot_title, plot_save_loc):
     df = wrangle_data(trial_path, sample = 'train')
@@ -384,14 +389,6 @@ market_test_plot(
     trading_limit=200,
     offset=None
 )
-market_test_detail(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=False',
-    data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_Quantum_BSFalse_50-10Epochs_12iters_CCData_LimitNone_marketTestDetail.png',
-    plot_title='CAVIA Quantum (BS=False) Market Test Detail on Test Portfolio',
-    num_days=50,
-    trading_limit=200
-)
 
 market_test_detail(
     trial_path1='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=False',
@@ -428,14 +425,6 @@ market_test_plot(
     legend_loc='lower left',
     trading_limit=200,
     offset=None
-)
-market_test_detail(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True',
-    data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum/MAML_Quantum_BSTrue_50-10Epochs_12iters_CCData_LimitNone_marketTestDetail.png',
-    plot_title='MAML Quantum (BS=True) Market Test Detail on Test Portfolio',
-    num_days=50,
-    trading_limit=200
 )
 
 #################
