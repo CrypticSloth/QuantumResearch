@@ -10,3 +10,9 @@ python C:\Github\QuantumResearch\NES_Meta_Trading\NES_cavia.py --iterations 3 --
 
 python C:\Github\QuantumResearch\NES_Meta_Trading\NES_maml_quantum.py --iterations 2 --checkpoint 1 --epochsTrain 25 --epochsTest 5 --limit None --beamsplitter False --num_days 180
 python C:\Github\QuantumResearch\NES_Meta_Trading\NES_cavia_quantum.py --iterations 2 --checkpoint 1 --epochsTrain 25 --epochsTest 5 --limit None --beamsplitter False --num_days 180
+
+python C:\Github\QuantumResearch\NES_Meta_Trading\NES_maml_quantum.py --iterations 2 --checkpoint 1 --epochsTrain 25 --epochsTest 10 --limit None --beamsplitter False --num_days 360
+python C:\Github\QuantumResearch\NES_Meta_Trading\NES_cavia_quantum.py --iterations 2 --checkpoint 1 --epochsTrain 25 --epochsTest 10 --limit None --beamsplitter False --num_days 360
+
+python C:\Github\QuantumResearch\NES_Meta_Trading\NES_maml_quantum.py --iterations 2 --checkpoint 1 --epochsTrain 25 --epochsTest 5 --limit None --beamsplitter True --num_days 180
+python C:\Github\QuantumResearch\NES_Meta_Trading\NES_cavia_quantum.py --iterations 2 --checkpoint 1 --epochsTrain 25 --epochsTest 5 --limit None --beamsplitter True --num_days 180
