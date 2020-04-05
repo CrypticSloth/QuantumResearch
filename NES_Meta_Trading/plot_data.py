@@ -116,13 +116,13 @@ np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/t
 # CAVIA
 np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360', 'test').mean(axis=1))[-2]
 # Quantum MAML (BS=False)
-np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=False', 'test').mean(axis=1))[-1]
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_BS=False', 'test').mean(axis=1))[-1]
 # Quantum MAML (BS=True)
-np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True', 'test').mean(axis=1))[-1]
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_BS=True', 'test').mean(axis=1))[-1]
 # Quantum CAVIA (BS=False)
-np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=False', 'test').mean(axis=1))[-1]
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=False', 'test').mean(axis=1))[-1]
 # Quantum CAVIA (BS=True)
-np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=True', 'test').mean(axis=1))[-1]
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=True', 'test').mean(axis=1))[-1]
 
 # Return the std for each test run.
 # MAML
@@ -130,16 +130,16 @@ np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/t
 # CAVIA
 np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360', 'test').std(axis=1))[-2]
 # Quantum MAML (BS=False)
-np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=False', 'test').std(axis=1))[-1]
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_BS=False', 'test').std(axis=1))[-1]
 # Quantum MAML (BS=True)
-np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True', 'test').std(axis=1))[-1]
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_BS=True', 'test').std(axis=1))[-1]
 # Quantum CAVIA (BS=False)
-np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=False', 'test').std(axis=1))[-1]
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=False', 'test').std(axis=1))[-1]
 # Quantum CAVIA (BS=True)
-np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=True', 'test').std(axis=1))[-1]
+np.array(wrangle_data('C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=True', 'test').std(axis=1))[-1]
 
 
-def training_plot(trial_path, num_remove, plot_title, plot_save_loc):
+def training_plot(trial_path, num_remove, ylim, plot_title, plot_save_loc):
     df = wrangle_data(trial_path, sample = 'train')
 
     def sigmoid(x):
@@ -155,7 +155,7 @@ def training_plot(trial_path, num_remove, plot_title, plot_save_loc):
 
     plt.plot(df.index, df.Mean)
     plt.fill_between(df.index, df.Mean - df.STD, df.Mean + df.STD, color = (0.1,0.2,0.7,0.3))
-    # plt.ylim(-3,3)
+    plt.ylim(ylim)
     # plt.xlim(0,500)
     plt.xlabel('Epochs')
     plt.ylabel('Rewards')
@@ -163,7 +163,7 @@ def training_plot(trial_path, num_remove, plot_title, plot_save_loc):
     plt.savefig(plot_save_loc)
     plt.show()
 
-def market_test_plot(trial_path, data_path, num_days, plot_title, plot_save_loc, legend_loc, trading_limit, starting_money=10000, offset=-1):
+def market_test_plot(trial_path, data_path, num_days, plot_title, plot_save_loc, legend_loc, ylim, trading_limit, starting_money=10000, offset=-1):
     df = wrangle_data(trial_path, sample = 'test')
 
     def sigmoid(x):
@@ -195,6 +195,7 @@ def market_test_plot(trial_path, data_path, num_days, plot_title, plot_save_loc,
     plt.legend(loc=legend_loc)
     plt.xlabel('Timestep')
     plt.ylabel('Total Value ($)')
+    plt.ylim(ylim)
     plt.title(plot_title)
     plt.tight_layout()
     plt.savefig(plot_save_loc)
@@ -299,13 +300,15 @@ training_plot(
     trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/train/E=2500_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360',
     num_remove=0,
     plot_title='MAML Training on CC Stock Portfolios',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML/MAML_360-20Epochs_12iters_CCData_Limit10_training.png'
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML/MAML_360-20Epochs_12iters_CCData_Limit10_training.png',
+    ylim=(-1,9)
 )
 training_plot(
     trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360',
     num_remove=0,
     plot_title='MAML Test Training on Test Portfolio',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML/MAML_360-20Epochs_12iters_CCData_Limit10_testTrain.png'
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML/MAML_360-20Epochs_12iters_CCData_Limit10_testTrain.png',
+    ylim=(-2,4)
 )
 market_test_plot(
     trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360',
@@ -313,8 +316,9 @@ market_test_plot(
     num_days=360,
     plot_title='MAML Market Test on Test Portfolio',
     plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML/MAML_360-20Epochs_12iters_CCData_Limit10_marketTest.png',
-    legend_loc='lower right',
-    trading_limit=10
+    legend_loc='upper left',
+    trading_limit=10,
+    ylim=None
 )
 
 #########
@@ -324,13 +328,15 @@ training_plot(
     trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/train/E=2500_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360',
     num_remove=0,
     plot_title='CAVIA Training on CC Stock Portfolios',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA/CAVIA_2500-20Epochs_12iters_CCData_Limit10_training.png'
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA/CAVIA_2500-20Epochs_12iters_CCData_Limit10_training.png',
+    ylim=(-1,9)
 )
 training_plot(
     trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360',
     num_remove=0,
     plot_title='CAVIA Test Training on Test Portfolio',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA/CAVIA_2500-20Epochs_12iters_CCData_Limit10_testTrain.png'
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA/CAVIA_2500-20Epochs_12iters_CCData_Limit10_testTrain.png',
+    ylim=(-2,4)
 )
 market_test_plot(
     trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360',
@@ -339,7 +345,8 @@ market_test_plot(
     plot_title = 'CAVIA Market Test on Test Portfolio',
     plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA/CAVIA_2500-20Epochs_12iters_CCData_Limit10_marketTest.png',
     legend_loc='upper left',
-    trading_limit=10
+    trading_limit=10,
+    ylim=None
 )
 
 # Detailed trading plot
@@ -357,62 +364,68 @@ market_test_detail(
 # MAML Quantum BS=False#
 ################
 training_plot(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/train/E=50_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=False',
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/train/E=25_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_BS=False',
     num_remove=0,
     plot_title='MAML Quantum (BS=False) Training on CC Stock Portfolios',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum/MAML_Quantum_BSFalse_50-10Epochs_12iters_CCData_LimitNone_training.png'
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum/MAML_Quantum_BSFalse_50-10Epochs_12iters_CCData_LimitNone_training.png',
+    ylim=(-30,70)
 )
 training_plot(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=False',
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_BS=False',
     num_remove=0,
     plot_title='MAML Quantum (BS=False) Test Training on Test Portfolio',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum/MAML_Quantum_BSFalse_50-10Epochs_12iters_CCData_LimitNone_testTrain.png'
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum/MAML_Quantum_BSFalse_50-10Epochs_12iters_CCData_LimitNone_testTrain.png',
+    ylim=(-25, 21)
 )
 market_test_plot(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=False',
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_BS=False',
     data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
-    num_days=50,
+    num_days=180,
     plot_title='MAML Quantum (BS=False) Market Test on Test Portfolio',
     plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum/MAML_Quantum_BSFalse_50-10Epochs_12iters_CCData_LimitNone_marketTest.png',
     legend_loc='lower left',
     trading_limit=200,
-    offset=None
+    offset=-1,
+    ylim=(4500,10900)
 )
 
 #################
 # CAVIA Quantum BS=False#
 #################
 training_plot(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/train/E=50_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=False',
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/train/E=25_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=False',
     num_remove=0,
     plot_title='CAVIA Quantum (BS=False) Training on CC Stock Portfolios',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_Quantum_BSFalse_50-10Epochs_12iters_CCData_LimitNone_training.png'
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_Quantum_BSFalse_50-10Epochs_12iters_CCData_LimitNone_training.png',
+    ylim=(-30,70)
 )
 training_plot(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=False',
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=False',
     num_remove=0,
     plot_title='CAVIA Quantum (BS=False) Test Training on Test Portfolio',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_Quantum_BSFalse_50-10Epochs_12iters_CCData_LimitNone_testTrain.png'
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_Quantum_BSFalse_50-10Epochs_12iters_CCData_LimitNone_testTrain.png',
+    ylim=(-25, 21)
 )
 market_test_plot(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=False',
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=False',
     data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
-    num_days=50,
+    num_days=180,
     plot_title='CAVIA Quantum (BS=False) Market Test on Test Portfolio',
     plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_Quantum_BSFalse_50-10Epochs_12iters_CCData_LimitNone_marketTest.png',
     legend_loc='lower left',
     trading_limit=200,
-    offset=None
+    offset=-1,
+    ylim=(4500,10900)
 )
 
 market_test_detail(
-    trial_path1='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=False',
-    trial_path2='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=False',
+    trial_path1='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_BS=False',
+    trial_path2='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=False',
     data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
     plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_MAML_Quantum_BSFalse_2500-20Epochs_12iters_CCData_Limit10_marketTestDetail.png',
     title1='MAML Quantum (BS=False) Distribution of Portfolio',
     title2='CAVIA Quantum (BS=False) Distribution of Portfolio',
-    num_days=50,
+    num_days=180,
     trading_limit=200
 )
 
@@ -420,62 +433,68 @@ market_test_detail(
 # MAML Quantum BS=True#
 ################
 training_plot(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/train/E=50_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True',
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/train/E=25_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_BS=True',
     num_remove=0,
     plot_title='MAML Quantum (BS=True) Training on CC Stock Portfolios',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum/MAML_Quantum_BSTrue_50-10Epochs_12iters_CCData_LimitNone_training.png'
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum/MAML_Quantum_BSTrue_50-10Epochs_12iters_CCData_LimitNone_training.png',
+    ylim=(-30,70)
 )
 training_plot(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True',
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_BS=True',
     num_remove=0,
     plot_title='MAML Quantum (BS=True) Test Training on Test Portfolio',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum/MAML_Quantum_BSTrue_50-10Epochs_12iters_CCData_LimitNone_testTrain.png'
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum/MAML_Quantum_BSTrue_50-10Epochs_12iters_CCData_LimitNone_testTrain.png',
+    ylim=(-25, 21)
 )
 market_test_plot(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True',
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_BS=True',
     data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
-    num_days=50,
+    num_days=180,
     plot_title='MAML Quantum (BS=True) Market Test on Test Portfolio',
     plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/MAML_Quantum/MAML_Quantum_BSTrue_50-10Epochs_12iters_CCData_LimitNone_marketTest.png',
     legend_loc='lower left',
     trading_limit=200,
-    offset=None
+    offset=-1,
+    ylim=(4500,10900)
 )
 
 #################
 # CAVIA Quantum BS=True#
 #################
 training_plot(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/train/E=50_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=True',
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/train/E=25_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=True',
     num_remove=0,
     plot_title='CAVIA Quantum (BS=True) Training on CC Stock Portfolios',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_Quantum_BSTrue_50-10Epochs_12iters_CCData_LimitNone_training.png'
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_Quantum_BSTrue_50-10Epochs_12iters_CCData_LimitNone_training.png',
+    ylim=(-30,70)
 )
 training_plot(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=True',
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=True',
     num_remove=0,
     plot_title='CAVIA Quantum (BS=True) Test Training on Test Portfolio',
-    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_Quantum_BSTrue_50-10Epochs_12iters_CCData_LimitNone_testTrain.png'
+    plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_Quantum_BSTrue_50-10Epochs_12iters_CCData_LimitNone_testTrain.png',
+    ylim=(-25, 21)
 )
 market_test_plot(
-    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=True',
+    trial_path='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=True',
     data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
-    num_days=50,
+    num_days=180,
     plot_title='CAVIA Quantum (BS=True) Market Test on Test Portfolio',
     plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_Quantum_BSTrue_50-10Epochs_12iters_CCData_LimitNone_marketTest.png',
     legend_loc='lower left',
     trading_limit=200,
-    offset=None
+    offset=-1,
+    ylim=(4500,10900)
 )
 
 market_test_detail(
-    trial_path1='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_BS=True',
-    trial_path2='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=10_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=50_NCP=2_BS=True',
+    trial_path1='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_BS=True',
+    trial_path2='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=True',
     data_path='C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
     plot_save_loc='C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/CAVIA_MAML_Quantum_BSTrue_2500-20Epochs_12iters_CCData_Limit10_marketTestDetail.png',
     title1='MAML Quantum (BS=True) Distribution of Portfolio',
     title2='CAVIA Quantum (BS=True) Distribution of Portfolio',
-    num_days=50,
+    num_days=180,
     trading_limit=200
 )
 
