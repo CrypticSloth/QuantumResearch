@@ -292,7 +292,7 @@ def market_test_detail(trial_path1, trial_path2, data_path, title1, title2, plot
     # fig.suptitle(plot_title)
     fig.savefig(plot_save_loc)
 
-def market_test_stock(trial_path1, trial_path2, data_path, stock_name, plot_save_loc, num_days, offset, trading_limit=10, starting_money=10000):
+def market_test_stock(trial_path1, trial_path2, data_path, stock_name, label1, label2, label_loc, plot_save_loc, num_days, offset, trading_limit=10, starting_money=10000):
     # trial_path1 = 'C:/Github/QuantumResearch/NES_Meta_Trading/results/maml/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360'
     # trial_path2 = 'C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360'
     #
@@ -316,9 +316,11 @@ def market_test_stock(trial_path1, trial_path2, data_path, stock_name, plot_save
     # Process market data
     data, names = load_data(data_path,num_days)
     data = [d[int(len(d)*.7):-1] for d in data]
-    limit = trading_limit
-    starting_money = starting_money
-    data = [((np.array(d) - d[0]) * limit) + starting_money for d in data]
+    # limit = trading_limit
+    # starting_money = starting_money
+    # data = [((np.array(d) - d[0]) * limit) + starting_money for d in data]
+    # data = data[names.index('ABC')]
+    # data
 
     # Process trading data 1
     df1 = wrangle_data(trial_path1, sample = 'portfolio')
@@ -352,21 +354,22 @@ def market_test_stock(trial_path1, trial_path2, data_path, stock_name, plot_save
     # %%
     fig,ax = plt.subplots()
     ax.title.set_text("Stock '{:}' Model Weights vs Market Value".format(stock_name))
-    ax.plot(range(len(data)), means1, color=tableau10[0], label='MAML')
-    ax.plot(range(len(data)), means2, color=tableau10[1], label='CAVIA')
-    ax.set_xlabel("timesteps")
-    ax.set_ylabel("Stock Weights")
+    ax.plot(range(len(data)), means1, color=tableau10[0], label=label1)
+    ax.plot(range(len(data)), means2, color=tableau10[1], label=label2)
+    ax.set_xlabel("Timestep")
+    ax.set_ylabel("Stock Weights in Portfolio")
     vals = ax.get_yticks()
     ax.set_yticklabels(['{:}%'.format(int(x)) for x in vals])
-    ax.legend(loc='upper right')
+    ax.legend(loc=label_loc)
 
     ax2 = ax.twinx()
     ax2.plot(range(len(data)), data, color=tableau10[2], linewidth=2.5)
-    ax2.set_ylabel("Market Value", color=tableau10[2])
+    ax2.set_ylabel("Stock Price", color=tableau10[2])
     vals = ax2.get_yticks()
-    ax2.set_yticklabels(['${:}'.format(int(x)) for x in vals])
+    print(vals)
+    ax2.set_yticklabels(['${:.2f}'.format(x) for x in vals])
 
-    fig.savefig(plot_save_loc)
+    fig.savefig(plot_save_loc, bbox_inches="tight")
     # plt.show()
 
 market_test_stock(
@@ -374,6 +377,9 @@ market_test_stock(
     trial_path2= 'C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia/test/E=20_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=10_WS=10_ND=360',
     data_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test/',
     stock_name = 'AKAM',
+    label1 = 'MAML',
+    label2 = 'CAVIA',
+    label_loc = 'upper right',
     plot_save_loc = 'C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA/detailed_trading_view_classical.png',
     num_days = 360,
     offset=-1
@@ -385,6 +391,9 @@ market_test_stock(
     trial_path2='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=True',
     data_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
     stock_name = 'ABC',
+    label1 = 'Q-MAML',
+    label2 = 'Q-CAVIA',
+    label_loc = 'lower right',
     plot_save_loc = 'C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/detailed_trading_view_quantum_BS=True',
     num_days = 180,
     offset=-1
