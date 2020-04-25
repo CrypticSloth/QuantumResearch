@@ -153,7 +153,7 @@ def training_plot(trial_path, num_remove, ylim, plot_title, plot_save_loc, xlim=
 
     df = df[num_remove:] # remove some rows if needed
 
-    plt.plot(df.index, df.Mean)
+    plt.plot(df.index, df.Mean, color='darkblue')
     plt.fill_between(df.index, df.Mean - df.STD, df.Mean + df.STD, color = (0.1,0.2,0.7,0.3))
     plt.ylim(ylim)
     plt.xlim(xlim)
@@ -189,7 +189,7 @@ def market_test_plot(trial_path, data_path, num_days, plot_title, plot_save_loc,
     df['market_value'] = data[:offset]
     # print(df)
 
-    plt.plot(df.index, df.Mean, label='Mean Balance')
+    plt.plot(df.index, df.Mean, label='Mean Balance', color='darkblue')
     plt.plot(df.market_value, label='Market Value', color='green')
     plt.fill_between(df.index, df.Mean - df.STD, df.Mean + df.STD, color = (0.1,0.2,0.7,0.3))
     plt.legend(loc=legend_loc)
@@ -400,14 +400,14 @@ market_test_stock(
 )
 
 # Quantum BS=False
-market_test_stock(
-    trial_path1='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_BS=False',
-    trial_path2='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=False',
-    data_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
-    stock_name = 'ABC',
-    plot_save_loc = 'C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/',
-    num_days = 180
-)
+# market_test_stock(
+#     trial_path1='C:/Github/QuantumResearch/NES_Meta_Trading/results/maml_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_BS=False',
+#     trial_path2='C:/Github/QuantumResearch/NES_Meta_Trading/results/cavia_quantum/test/E=5_PS=15_S=0.1_LR=0.03_sk=1_IM=10000_L=None_WS=1_ND=180_NCP=2_BS=False',
+#     data_path = 'C:/Github/QuantumResearch/NES_Meta_Trading/dataset/test_cavia/',
+#     stock_name = 'ABC',
+#     plot_save_loc = 'C:/Github/QuantumResearch/NES_Meta_Trading/graphics/CAVIA_Quantum/',
+#     num_days = 180
+# )
 
     # %%
     # plt.plot(range(len(data)), means1, label='Mean Balance')
@@ -423,7 +423,7 @@ market_test_stock(
     # plt.show()
     # %%
 
-    return
+    # return
     # %%
 ########
 # MAML #
